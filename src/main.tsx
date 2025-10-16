@@ -10,11 +10,11 @@ import ProtectedLayout from "./layouts/protected.layout";
 
 import HomePage from "./pages/home.page";
 import ArtPage from "./pages/art.page";
-import ArtistPage from "./pages/artist";
+import ArtistPage from "./pages/artist.page";
 import BlogPage from "./pages/blog.page";
 import AdminPage from "./pages/admin.page";
-import SignInPage from "./pages/sign-in";
-import SignUpPage from "./pages/sign-up";
+import SignInPage from "./pages/sign-in.page";
+import SignUpPage from "./pages/sign-up.page";
 
 // Initialize Clerk
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
