@@ -90,7 +90,7 @@ const Navigation = () => {
               </SignedOut>
             )}
 
-            {/* User profile and account access for signed-in users */}
+            {/* User profile and profile access for signed-in users */}
             {isLoaded && (
               <SignedIn>
                 <UserButton />
@@ -98,7 +98,7 @@ const Navigation = () => {
                   className="font-semibold text-xs sm:text-sm h-9"
                   asChild
                 >
-                  <Link to={"/account"}>My Account</Link>
+                  <Link to={"/profile"}>My Profile</Link>
                 </Button>
               </SignedIn>
             )}
