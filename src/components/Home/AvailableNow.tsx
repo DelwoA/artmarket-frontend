@@ -1,110 +1,23 @@
 import { Link } from "react-router";
 import { useMemo } from "react";
-import AvailableNowCard, {
-  type ArtItem,
-} from "@/components/Home/AvailableNowCard";
+import AvailableNowCard from "@/components/Home/AvailableNowCard";
+import { ARTS } from "@/lib/data/arts";
 import AvailableNowFilter from "@/components/Home/AvailableNowFilter";
 
 const AvailableNow = () => {
-  const ITEMS = useMemo<ArtItem[]>(
-    () => [
-      {
-        id: 1,
-        title: "Serenity in Blue",
-        artistName: "Elena Rodriguez",
-        priceUsd: 1200,
-        likes: 143,
-        views: 1892,
-        imageUrl:
-          "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/serenity-in-blue",
-        artistUrl: "/artists/elena-rodriguez",
-      },
-      {
-        id: 2,
-        title: "Mountain Sunrise",
-        artistName: "David Chen",
-        priceUsd: 850,
-        likes: 98,
-        views: 1245,
-        imageUrl:
-          "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/mountain-sunrise",
-        artistUrl: "/artists/david-chen",
-      },
-      {
-        id: 3,
-        title: "Urban Jungle",
-        artistName: "James Wilson",
-        priceUsd: 1500,
-        likes: 215,
-        views: 2780,
-        imageUrl:
-          "https://images.unsplash.com/photo-1541959833400-049d37f98ccd?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
-        artworkUrl: "/art/urban-jungle",
-        artistUrl: "/artists/james-wilson",
-      },
-      {
-        id: 4,
-        title: "Vibrant Patterns",
-        artistName: "Aisha Patel",
-        priceUsd: 950,
-        likes: 167,
-        views: 1932,
-        imageUrl:
-          "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/vibrant-patterns",
-        artistUrl: "/artists/aisha-patel",
-      },
-      {
-        id: 5,
-        title: "Abstract Emotions",
-        artistName: "Elena Rodriguez",
-        priceUsd: 1800,
-        likes: 189,
-        views: 2341,
-        imageUrl:
-          "https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/abstract-emotions",
-        artistUrl: "/artists/elena-rodriguez",
-      },
-      {
-        id: 6,
-        title: "Coastal Dreams",
-        artistName: "David Chen",
-        priceUsd: 1100,
-        likes: 132,
-        views: 1567,
-        imageUrl:
-          "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/coastal-dreams",
-        artistUrl: "/artists/david-chen",
-      },
-      {
-        id: 7,
-        title: "City Lights",
-        artistName: "James Wilson",
-        priceUsd: 1350,
-        likes: 176,
-        views: 2089,
-        imageUrl:
-          "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/city-lights",
-        artistUrl: "/artists/james-wilson",
-      },
-      {
-        id: 8,
-        title: "Heritage Threads",
-        artistName: "Aisha Patel",
-        priceUsd: 780,
-        likes: 121,
-        views: 1432,
-        imageUrl:
-          "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&auto=format&fit=crop",
-        artworkUrl: "/art/heritage-threads",
-        artistUrl: "/artists/aisha-patel",
-      },
-    ],
+  const ITEMS = useMemo(
+    () =>
+      ARTS.slice(0, 8).map((art) => ({
+        id: art.id,
+        title: art.title,
+        artistName: art.artistName,
+        priceUsd: art.priceUsd,
+        likes: art.likes,
+        views: art.views,
+        imageUrl: art.imageUrl,
+        artworkUrl: art.artworkUrl,
+        artistUrl: art.artistUrl,
+      })),
     []
   );
 

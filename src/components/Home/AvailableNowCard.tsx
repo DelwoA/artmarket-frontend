@@ -1,18 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Eye } from "lucide-react";
 import { Link } from "react-router";
-
-export type ArtItem = {
-  id: number;
-  title: string;
-  artistName: string;
-  priceUsd: number;
-  likes: number;
-  views: number;
-  imageUrl?: string;
-  artworkUrl?: string;
-  artistUrl?: string;
-};
+import type { ArtItem } from "@/lib/data/arts";
 
 type Props = {
   item: ArtItem;
