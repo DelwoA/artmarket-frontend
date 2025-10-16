@@ -66,7 +66,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 0,
     views: 0,
     avatarUrl:
-      "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1583195763986-0231686dcd43?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2076",
     bio: "Portrait photographer capturing urban stories",
     profileUrl: "/artists/michael-johnson",
     artworksUrl: "/artists/michael-johnson/artworks",
@@ -78,7 +78,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 0,
     views: 0,
     avatarUrl:
-      "https://images.unsplash.com/photo-1544005316-04ce1f98d86a?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1475823678248-624fc6f85785?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Mixed‑media artist exploring minimal forms",
     profileUrl: "/artists/sophia-lee",
     artworksUrl: "/artists/sophia-lee/artworks",
@@ -90,7 +90,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 455,
     views: 5401,
     avatarUrl:
-      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1521132293557-5b908a59d1e1?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1974",
     bio: "Oil painter focused on light and atmosphere",
     profileUrl: "/artists/lucas-martin",
     artworksUrl: "/artists/lucas-martin/artworks",
@@ -102,7 +102,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 388,
     views: 4899,
     avatarUrl:
-      "https://images.unsplash.com/photo-1544005318-8f06f5fbd8a7?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1740436119728-c67320872deb?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2532",
     bio: "Ceramic artist crafting modern vessels",
     profileUrl: "/artists/maria-rossi",
     artworksUrl: "/artists/maria-rossi/artworks",
@@ -114,7 +114,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 264,
     views: 3411,
     avatarUrl:
-      "https://images.unsplash.com/photo-1544005316-7fa67a0d37b3?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1631284443960-8de62bb38bdc?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Illustrator blending folklore and modernity",
     profileUrl: "/artists/hana-kim",
     artworksUrl: "/artists/hana-kim/artworks",
@@ -138,7 +138,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 501,
     views: 6120,
     avatarUrl:
-      "https://images.unsplash.com/photo-1544005317-3f7d89b5e3c3?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Landscape photographer inspired by coastlines",
     profileUrl: "/artists/emma-thompson",
     artworksUrl: "/artists/emma-thompson/artworks",
@@ -150,7 +150,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 289,
     views: 3302,
     avatarUrl:
-      "https://images.unsplash.com/photo-1545996124-0501ebae84d4?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1631603630984-81019825df8a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Street artist mixing collage and spray paint",
     profileUrl: "/artists/noah-brown",
     artworksUrl: "/artists/noah-brown/artworks",
@@ -210,7 +210,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 158,
     views: 2003,
     avatarUrl:
-      "https://images.unsplash.com/photo-1511367466-95bf97d9a5b3?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1665414779210-ac1667a81418?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2532",
     bio: "Textile designer weaving cultural motifs",
     profileUrl: "/artists/fatima-noor",
     artworksUrl: "/artists/fatima-noor/artworks",
@@ -222,7 +222,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 377,
     views: 4122,
     avatarUrl:
-      "https://images.unsplash.com/photo-1519340241730-8da3b339e7b7?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1536548665027-b96d34a005ae?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Colorist painter inspired by tropical rhythms",
     profileUrl: "/artists/rafael-silva",
     artworksUrl: "/artists/rafael-silva/artworks",
@@ -234,7 +234,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 141,
     views: 1754,
     avatarUrl:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1587115203801-cbf58ecd3cf3?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2071",
     bio: "Ink painter balancing tradition and modern life",
     profileUrl: "/artists/zoe-nguyen",
     artworksUrl: "/artists/zoe-nguyen/artworks",
@@ -270,7 +270,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 521,
     views: 7004,
     avatarUrl:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1696084086051-bbbf8acc9d2c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Contemporary sculptor exploring shadow and form",
     profileUrl: "/artists/yuki-tanaka",
     artworksUrl: "/artists/yuki-tanaka/artworks",
@@ -306,7 +306,7 @@ export const ARTISTS: readonly Artist[] = [
     likes: 342,
     views: 4098,
     avatarUrl:
-      "https://images.unsplash.com/photo-1520975922203-b798f63a3562?q=80&w=256&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1596960198491-fc2ed81c55ab?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2070",
     bio: "Textile and pattern artist celebrating West African craft",
     profileUrl: "/artists/amara-diallo",
     artworksUrl: "/artists/amara-diallo/artworks",
