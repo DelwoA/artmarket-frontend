@@ -32,7 +32,7 @@ const Hero = () => {
                   size="lg"
                   className="rounded-md"
                 >
-                  <Link to="/artists">Meet Artists</Link>
+                  <Link to="/artist">Meet Artists</Link>
                 </Button>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">

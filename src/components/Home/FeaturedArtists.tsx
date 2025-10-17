@@ -32,7 +32,7 @@ const FeaturedArtists = () => {
             </p>
           </div>
           <Link
-            to="/artists"
+            to="/artist"
             className="text-sm font-medium hover:underline hover:text-foreground"
           >
             View all →

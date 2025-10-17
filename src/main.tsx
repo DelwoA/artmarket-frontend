@@ -15,6 +15,7 @@ import BlogPage from "./pages/blog.page";
 import AdminPage from "./pages/admin.page";
 import SignInPage from "./pages/sign-in.page";
 import SignUpPage from "./pages/sign-up.page";
+import MyProfilePage from "./pages/myprofile.page";
 
 // Initialize Clerk
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -37,6 +38,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="blog" element={<BlogPage />} />
               <Route path="/sign-in" element={<SignInPage />} />
               <Route path="/sign-up" element={<SignUpPage />} />
+              <Route path="/myprofile" element={<MyProfilePage />} />
               <Route element={<ProtectedLayout />}>
                 <Route path="admin" element={<AdminPage />} />
               </Route>

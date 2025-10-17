@@ -98,7 +98,7 @@ const Navigation = () => {
                   className="font-semibold text-xs sm:text-sm h-9"
                   asChild
                 >
-                  <Link to={"/profile"}>My Profile</Link>
+                  <Link to={"/myprofile"}>My Profile</Link>
                 </Button>
               </SignedIn>
             )}

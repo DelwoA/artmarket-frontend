@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import AvailableNowCard from "@/components/Home/AvailableNowCard";
 import { ARTS } from "@/lib/data/arts";
 import AvailableNowFilter from "@/components/Home/AvailableNowFilter";
@@ -21,6 +21,24 @@ const AvailableNow = () => {
     []
   );
 
+  type SortKey = "Newest" | "Price" | "Popularity";
+  const [activeSort, setActiveSort] = useState<SortKey>("Newest");
+
+  const sorted = useMemo(() => {
+    const base = [...ITEMS];
+    switch (activeSort) {
+      case "Price":
+        return base.sort((a, b) => b.priceUsd - a.priceUsd);
+      case "Popularity":
+        // Popularity proxy: likes then views
+        return base.sort((a, b) => b.likes - a.likes || b.views - a.views);
+      case "Newest":
+      default:
+        // No createdAt, emulate "newest" by higher id first
+        return base.sort((a, b) => b.id - a.id);
+    }
+  }, [ITEMS, activeSort]);
+
   return (
     <section className="w-full py-12 md:py-16 bg-background">
       <div className="container mx-auto px-4 md:px-8">
@@ -37,14 +55,25 @@ const AvailableNow = () => {
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs md:text-sm">
-          <AvailableNowFilter label="Newest" active />
-          <AvailableNowFilter label="Price" />
-          <AvailableNowFilter label="Price" />
-          <AvailableNowFilter label="Popularity" />
+          <AvailableNowFilter
+            label="Newest"
+            active={activeSort === "Newest"}
+            onClick={() => setActiveSort("Newest")}
+          />
+          <AvailableNowFilter
+            label="Price"
+            active={activeSort === "Price"}
+            onClick={() => setActiveSort("Price")}
+          />
+          <AvailableNowFilter
+            label="Popularity"
+            active={activeSort === "Popularity"}
+            onClick={() => setActiveSort("Popularity")}
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {ITEMS.map((item) => (
+          {sorted.map((item) => (
             <AvailableNowCard key={item.id} item={item} />
           ))}
         </div>
