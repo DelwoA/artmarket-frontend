@@ -40,7 +40,7 @@ const AvailableNow = () => {
   }, [ITEMS, activeSort]);
 
   return (
-    <section className="w-full py-12 md:py-16 bg-background">
+    <section className="w-full my-14 md:my-23 bg-background">
       <div className="container mx-auto px-4 md:px-8">
         <div className="mb-4 md:mb-6 flex items-center justify-between">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">

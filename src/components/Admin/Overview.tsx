@@ -18,38 +18,17 @@ type Props = {
     title: string;
     at: string;
   }>;
-  loading?: boolean;
 };
 
-const Overview = ({ counts, onQuickNav, recent, loading }: Props) => {
+const Overview = ({ counts, onQuickNav, recent }: Props) => {
   return (
     <div className="space-y-6 min-h-[81vh]">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard
-          title="Pending Artists"
-          value={counts.pendingArtists}
-          loading={loading}
-        />
-        <KpiCard
-          title="Pending Blogs"
-          value={counts.pendingBlogs}
-          loading={loading}
-        />
-        <KpiCard
-          title="Banned Artworks"
-          value={counts.bannedArtworks}
-          loading={loading}
-        />
-        <KpiCard
-          title="Total Artists"
-          value={counts.totalArtists}
-          loading={loading}
-        />
-        <KpiCard
-          title="Total Artworks"
-          value={counts.totalArtworks}
-          loading={loading}
-        />
+        <KpiCard title="Pending Artists" value={counts.pendingArtists} />
+        <KpiCard title="Pending Blogs" value={counts.pendingBlogs} />
+        <KpiCard title="Banned Artworks" value={counts.bannedArtworks} />
+        <KpiCard title="Total Artists" value={counts.totalArtists} />
+        <KpiCard title="Total Artworks" value={counts.totalArtworks} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -74,13 +53,7 @@ const Overview = ({ counts, onQuickNav, recent, loading }: Props) => {
         <Card className="p-4">
           <h3 className="text-sm font-semibold">Recent activity</h3>
           <Separator className="my-3" />
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-10 rounded-md bg-muted/50" />
-              ))}
-            </div>
-          ) : recent.length === 0 ? (
+          {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">No recent activity</p>
           ) : (
             <ul className="space-y-3">

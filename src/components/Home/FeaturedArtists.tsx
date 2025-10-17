@@ -20,7 +20,7 @@ const FeaturedArtists = () => {
   );
 
   return (
-    <section className="w-full py-12 md:py-16 bg-background">
+    <section className="w-full my-14 md:my-23 bg-background">
       <div className="container mx-auto px-4 md:px-8">
         <div className="mb-6 md:mb-8 flex items-end justify-between">
           <div>

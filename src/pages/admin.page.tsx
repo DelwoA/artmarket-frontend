@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 const AdminPage = () => {
   const [active, setActive] = useState<NavKey>("overview");
-  const [loading, setLoading] = useState(true);
+  // overview no longer uses loading state
   const [isAdmin] = useState(true);
   const [counts, setCounts] = useState({
     pendingArtists: 3,
@@ -30,10 +30,7 @@ const AdminPage = () => {
     totalArtworks: 25,
   });
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => {}, []);
 
   const recent = useMemo(
     () => [
@@ -127,7 +124,6 @@ const AdminPage = () => {
               <Overview
                 counts={counts}
                 recent={recent}
-                loading={loading}
                 onQuickNav={setActive}
               />
             )}
