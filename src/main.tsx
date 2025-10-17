@@ -16,6 +16,8 @@ import AdminPage from "./pages/admin.page";
 import SignInPage from "./pages/sign-in.page";
 import SignUpPage from "./pages/sign-up.page";
 import MyProfilePage from "./pages/my-profile.page";
+import CreateNewArtPage from "./pages/create-new-art";
+import CreateNewBlogPage from "./pages/create-new-blog";
 
 // Initialize Clerk
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -33,14 +35,22 @@ createRoot(document.getElementById("root")!).render(
           <Route element={<RootLayout />}>
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
-              <Route path="art" element={<ArtPage />} />
-              <Route path="artist" element={<ArtistPage />} />
-              <Route path="blog" element={<BlogPage />} />
-              <Route path="/sign-in" element={<SignInPage />} />
-              <Route path="/sign-up" element={<SignUpPage />} />
-              <Route path="/myprofile" element={<MyProfilePage />} />
+              <Route path="/art" element={<ArtPage />} />
+              <Route path="/artist" element={<ArtistPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
               <Route element={<ProtectedLayout />}>
-                <Route path="admin" element={<AdminPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/myprofile" element={<MyProfilePage />} />
+                <Route
+                  path="/myprofile/createnewart"
+                  element={<CreateNewArtPage />}
+                />
+                <Route
+                  path="/myprofile/createnewblog"
+                  element={<CreateNewBlogPage />}
+                />
               </Route>
             </Route>
           </Route>
