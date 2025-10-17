@@ -119,7 +119,7 @@ const HomepageConfig = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[81vh] mb-15">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Hero Slides */}
         <Card className="p-4">

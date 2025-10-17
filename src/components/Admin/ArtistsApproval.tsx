@@ -105,7 +105,7 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
   const empty = filtered.length === 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-h-[81vh]">
       <Card className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1 min-w-0">
