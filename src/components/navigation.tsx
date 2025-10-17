@@ -62,8 +62,8 @@ const Navigation = () => {
 
             {/* Admin-only navigation - visible only on tablet and larger screens */}
             {isLoaded && user?.publicMetadata?.role === "admin" && (
-              <div className="hidden sm:block ml-8 font-medium text-teal-800 hover:text-teal-600 transition-colors">
-                <Link to={"/admin/hotels/create"}>Create Hotel</Link>
+              <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
+                <Link to={"/admin"}>Admin</Link>
               </div>
             )}
           </div>
@@ -104,8 +104,10 @@ const Navigation = () => {
             )}
 
             {/* Mobile menu with dropdown - visible only on small screens */}
+
             <div className="sm:hidden relative">
               {/* Mobile menu toggle button with animation */}
+
               <div
                 className={`flex items-center justify-center h-7 w-7 rounded-full transition-colors duration-200 ${
                   isMenuOpen ? "bg-slate-50" : "hover:bg-slate-50/50"
@@ -135,19 +137,33 @@ const Navigation = () => {
                   Home
                 </Link>
                 <Link
-                  to="/hotels"
+                  to="/artist"
                   className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  All Hotels
+                  Artists
+                </Link>
+                <Link
+                  to="/art"
+                  className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Arts
+                </Link>
+                <Link
+                  to="/blog"
+                  className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Blogs
                 </Link>
                 {isLoaded && user?.publicMetadata?.role === "admin" && (
                   <Link
-                    to="/admin/hotels/create"
+                    to="/admin"
                     className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Create Hotel
+                    Admin
                   </Link>
                 )}
               </div>
