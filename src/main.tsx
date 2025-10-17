@@ -15,7 +15,7 @@ import BlogPage from "./pages/blog.page";
 import AdminPage from "./pages/admin.page";
 import SignInPage from "./pages/sign-in.page";
 import SignUpPage from "./pages/sign-up.page";
-import MyProfilePage from "./pages/myprofile.page";
+import MyProfilePage from "./pages/my-profile.page";
 
 // Initialize Clerk
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

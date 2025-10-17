@@ -4,6 +4,7 @@ import ArtistCard, {
   type ArtistListItem,
 } from "@/components/Artist/ArtistCard";
 import { ARTISTS as ARTISTS_DATA } from "@/lib/data/artists";
+import COUNTRIES from "@/lib/data/countries";
 import {
   Select,
   SelectContent,
@@ -84,14 +85,12 @@ const ArtistPage = () => {
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Select country</SelectItem>
-              <SelectItem value="sri lanka">Sri Lanka</SelectItem>
-              <SelectItem value="india">India</SelectItem>
-              <SelectItem value="spain">Spain</SelectItem>
-              <SelectItem value="canada">Canada</SelectItem>
-              <SelectItem value="uk">United Kingdom</SelectItem>
-              <SelectItem value="usa">United States</SelectItem>
-              <SelectItem value="korea">South Korea</SelectItem>
+              <SelectItem value="all">All countries</SelectItem>
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c.code} value={c.slug}>
+                  {c.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={sort} onValueChange={setSort}>
