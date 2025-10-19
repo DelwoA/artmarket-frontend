@@ -59,6 +59,9 @@ const Navigation = () => {
             <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
               <Link to="/blog">Blogs</Link>
             </div>
+            <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
+              <Link to="/buy-now">Buy Now</Link>
+            </div>
 
             {/* Artist-only navigation - visible only on tablet and larger screens */}
             {isLoaded && user?.publicMetadata?.role === "artist" && (
