@@ -1,0 +1,114 @@
+// Backend server URL obtained from environment variable
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+// Get all arts
+export const getArts = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts`, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      throw new Error("Failed to fetch arts");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching arts:", error);
+    throw error;
+  }
+};
+
+// Get a single art by ID
+export const getArtById = async (artId: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts/${artId}`, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      throw new Error("Failed to fetch art");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching art:", error);
+    throw error;
+  }
+};
+
+// Create a new art
+export const createArt = async (artData: unknown, token?: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(artData),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to create art");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error creating art:", error);
+    throw error;
+  }
+};
+
+// Update an existing art
+export const updateArt = async (
+  artId: string,
+  artData: unknown,
+  token?: string
+) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts/${artId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(artData),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to update art");
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating art:", error);
+    throw error;
+  }
+};
+
+// Delete an art
+export const deleteArt = async (artId: string, token?: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts/${artId}`, {
+      method: "DELETE",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) {
+      throw new Error("Failed to delete art");
+    }
+    return true;
+  } catch (error) {
+    console.error("Error deleting art:", error);
+    throw error;
+  }
+};
+
+// Get featured arts
+export const getFeaturedArts = async () => {
+  try {
+    const arts = await getArts();
+    return arts.filter((art: any) => art.featured === true);
+  } catch (error) {
+    console.error("Error fetching featured arts:", error);
+    throw error;
+  }
+};
