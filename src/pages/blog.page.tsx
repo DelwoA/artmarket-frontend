@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import BackLink from "@/components/Blog/BackLink";
 import BlogHeader from "@/components/Blog/BlogHeader";
@@ -14,9 +14,10 @@ const BlogPage = () => {
   const [blog, setBlog] = useState<{
     id: string | number;
     title: string;
+    subtitle: string;
     artistName: string;
     description: string;
-    image?: string;
+    image: string;
     views: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ const BlogPage = () => {
           setBlog({
             id: found._id,
             title: found.title,
+            subtitle: found.subtitle,
             artistName: found.artistName,
             description: found.description,
             image: found.image,
@@ -51,12 +53,6 @@ const BlogPage = () => {
     };
   }, [slug]);
 
-  const headerSubtitle = useMemo(
-    () =>
-      "How to start and grow a meaningful art collection without breaking the bank",
-    []
-  );
-
   return (
     <main className="w-full bg-background">
       <div className="container mx-auto px-4 md:px-8 py-8 md:py-10">
@@ -67,7 +63,7 @@ const BlogPage = () => {
           <div className="space-y-6 md:space-y-8">
             <BlogHeader
               title={blog.title}
-              subtitle={headerSubtitle}
+              subtitle={blog.subtitle}
               author={blog.artistName}
               views={blog.views}
               dateLabel={undefined}
