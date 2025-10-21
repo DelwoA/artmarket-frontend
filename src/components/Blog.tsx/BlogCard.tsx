@@ -1,16 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { Link } from "react-router";
-import type { BlogPost } from "@/lib/data/blogs";
 
 type Props = {
-  post: BlogPost;
+  post: {
+    id: string | number;
+    title: string;
+    excerpt: string;
+    author: string;
+    coverUrl?: string;
+    views: number;
+  };
 };
 
 const BlogCard = ({ post }: Props) => {
   return (
     <article className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <Link to={`/blogs/${post.id}`} className="block">
+      <Link to={`#`} className="block">
         <div className="aspect-[4/3] w-full bg-muted/20">
           {post.coverUrl ? (
             <img
@@ -41,7 +47,7 @@ const BlogCard = ({ post }: Props) => {
         </div>
 
         <Button asChild variant="outline" className="mt-4 w-full">
-          <Link to={`/blogs/${post.id}`}>Read</Link>
+          <Link to={`#`}>Read</Link>
         </Button>
       </div>
     </article>

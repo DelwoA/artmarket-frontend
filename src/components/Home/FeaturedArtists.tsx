@@ -1,23 +1,42 @@
 import { Link } from "react-router";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import FeaturedArtistCard, { type Artist } from "./FeaturedArtistCard";
-import { ARTISTS as ARTISTS_DATA } from "@/lib/data/artists";
+import { getArtists } from "@/lib/artists";
 
 const FeaturedArtists = () => {
-  const ARTISTS = useMemo<Artist[]>(
-    () =>
-      ARTISTS_DATA.slice(0, 4).map((artist) => ({
-        id: artist.id,
-        name: artist.name,
-        location: artist.location,
-        bio: artist.bio ?? "",
-        likes: String(artist.likes),
-        views: String(artist.views),
-        avatarUrl: artist.avatarUrl,
-        profileUrl: artist.profileUrl,
-      })),
-    []
-  );
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const data = await getArtists();
+        if (!isMounted) return;
+        const mapped: Artist[] = (Array.isArray(data) ? data : [])
+          .slice(0, 4)
+          .map((a: any, idx: number) => ({
+            id: a._id ?? idx,
+            name: a.name,
+            location: `${a.city}, ${a.country}`,
+            bio: a.bio ?? "",
+            likes: String(a.totalLikes ?? 0),
+            views: String(a.totalViews ?? 0),
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              a.name
+            )}&background=E5E7EB&color=111827&size=64`,
+            profileUrl: "#",
+          }));
+        setArtists(mapped);
+        setError(null);
+      } catch (e) {
+        setError("Failed to load artists");
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section className="w-full my-14 md:my-23 bg-background">
@@ -39,11 +58,15 @@ const FeaturedArtists = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
-          {ARTISTS.map((artist) => (
-            <FeaturedArtistCard key={artist.id} artist={artist} />
-          ))}
-        </div>
+        {error ? (
+          <div className="text-sm text-destructive">{error}</div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
+            {artists.map((artist) => (
+              <FeaturedArtistCard key={artist.id} artist={artist} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Eye } from "lucide-react";
 import { Link } from "react-router";
-import type { ArtItem } from "@/lib/data/arts";
 
 type Props = {
-  item: ArtItem;
+  item: {
+    id: string | number;
+    title: string;
+    artistName: string;
+    price: number;
+    likes: number;
+    views: number;
+    imageUrl?: string;
+  };
 };
 
 const ArtCard = ({ item }: Props) => {
@@ -12,11 +19,11 @@ const ArtCard = ({ item }: Props) => {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(item.priceUsd);
+  }).format(item.price);
 
   return (
     <article className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <Link to={item.artworkUrl} className="block">
+      <Link to="#" className="block">
         <div className="aspect-[4/3] w-full bg-muted/20">
           {item.imageUrl ? (
             <img
@@ -49,7 +56,7 @@ const ArtCard = ({ item }: Props) => {
         </div>
 
         <Button asChild variant="outline" className="mt-3 w-full">
-          <Link to={item.artworkUrl}>View</Link>
+          <Link to="#">View</Link>
         </Button>
       </div>
     </article>

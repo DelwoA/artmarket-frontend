@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Eye } from "lucide-react";
 import { Link } from "react-router";
-import type { ArtItem } from "@/lib/data/arts";
 
 type Props = {
-  item: ArtItem;
+  item: {
+    id: string | number;
+    title: string;
+    artistName: string;
+    price: number;
+    likes: number;
+    views: number;
+    imageUrl?: string;
+  };
 };
 
 const AvailableNowCard = ({ item }: Props) => {
@@ -12,11 +19,11 @@ const AvailableNowCard = ({ item }: Props) => {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(item.priceUsd);
+  }).format(item.price);
 
   return (
     <article className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-      <Link to={item.artworkUrl ?? "#"} className="block">
+      <Link to="#" className="block">
         <div className="aspect-[4/3] w-full bg-muted/20">
           {item.imageUrl ? (
             <img
@@ -33,14 +40,7 @@ const AvailableNowCard = ({ item }: Props) => {
           {item.title}
         </h3>
         <p className="text-xs md:text-sm text-muted-foreground">
-          by{" "}
-          {item.artistUrl ? (
-            <Link to={item.artistUrl} className="hover:underline">
-              {item.artistName}
-            </Link>
-          ) : (
-            item.artistName
-          )}
+          by {item.artistName}
         </p>
 
         <div className="mt-3 text-sm md:text-base font-medium">
@@ -57,7 +57,7 @@ const AvailableNowCard = ({ item }: Props) => {
         </div>
 
         <Button asChild variant="outline" className="mt-3 w-full">
-          <Link to={item.artworkUrl ?? "#"}>View</Link>
+          <Link to="#">View</Link>
         </Button>
       </div>
     </article>

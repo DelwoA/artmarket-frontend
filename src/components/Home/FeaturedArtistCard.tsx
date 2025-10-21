@@ -53,7 +53,7 @@ const FeaturedArtistCard = ({ artist }: Props) => {
         asChild
         className="mt-6 w-full bg-white text-foreground hover:bg-slate-100"
       >
-        <Link to={artist.profileUrl ?? "#"}>View Profile</Link>
+        <Link to={"#"}>View Profile</Link>
       </Button>
     </article>
   );

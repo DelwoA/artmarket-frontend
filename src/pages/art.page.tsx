@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import ArtCard from "@/components/Art/ArtCard";
-import { ARTS, type ArtItem } from "@/lib/data/arts";
+import { getArts } from "@/lib/arts";
 import {
   Select,
   SelectContent,
@@ -16,35 +16,84 @@ const ArtPage = () => {
   const [artist, setArtist] = useState("all");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
+  const [items, setItems] = useState<
+    Array<{
+      id: string | number;
+      title: string;
+      artistName: string;
+      price: number;
+      likes: number;
+      views: number;
+      imageUrl?: string;
+    }>
+  >([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const arts = await getArts();
+        if (!isMounted) return;
+        const mapped = (Array.isArray(arts) ? arts : []).map(
+          (art: any, idx: number) => ({
+            id: art._id ?? idx,
+            title: art.title,
+            artistName: art.artistName,
+            price: Number(art.price ?? 0),
+            likes: Number(art.likes ?? 0),
+            views: Number(art.views ?? 0),
+            imageUrl:
+              Array.isArray(art.images) && art.images.length > 0
+                ? art.images[0]
+                : undefined,
+          })
+        );
+        setItems(mapped);
+        setError(null);
+      } catch (e) {
+        setError("Failed to load arts");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const artists = useMemo(() => {
     const set = new Set<string>(["all"]);
-    ARTS.forEach((a) => set.add(a.artistName));
+    items.forEach((a) => set.add(a.artistName));
     return Array.from(set);
-  }, []);
+  }, [items]);
 
   const filtered = useMemo(() => {
-    const base = ARTS.filter((a) =>
-      `${a.title} ${a.artistName}`
-        .toLowerCase()
-        .includes(query.toLowerCase().trim())
-    ).filter((a) => (artist === "all" ? true : a.artistName === artist));
+    const base = items
+      .filter((a) =>
+        `${a.title} ${a.artistName}`
+          .toLowerCase()
+          .includes(query.toLowerCase().trim())
+      )
+      .filter((a) => (artist === "all" ? true : a.artistName === artist));
 
     const sorted = [...base].sort((a, b) => {
-      if (sort === "newest") return b.id - a.id; // proxy for recency
-      if (sort === "price-asc") return a.priceUsd - b.priceUsd;
-      if (sort === "price-desc") return b.priceUsd - a.priceUsd;
+      if (sort === "newest") return Number(b.id) - Number(a.id); // proxy for recency
+      if (sort === "price-asc") return a.price - b.price;
+      if (sort === "price-desc") return b.price - a.price;
       if (sort === "popularity") return b.views - a.views;
       return 0;
     });
     return sorted;
-  }, [query, artist, sort]);
+  }, [items, query, artist, sort]);
 
   const pageSize = 8;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(Math.max(1, page), totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const visible: ArtItem[] = filtered.slice(startIndex, startIndex + pageSize);
+  const visible = filtered.slice(startIndex, startIndex + pageSize);
 
   useEffect(() => setPage(1), [query, artist, sort]);
 
@@ -96,11 +145,15 @@ const ArtPage = () => {
           </Select>
         </div>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {visible.map((item) => (
-            <ArtCard key={item.id} item={item} />
-          ))}
-        </section>
+        {error ? (
+          <div className="text-sm text-destructive">{error}</div>
+        ) : (
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {(loading ? [] : visible).map((item) => (
+              <ArtCard key={item.id} item={item} />
+            ))}
+          </section>
+        )}
 
         <div className="mt-6 flex items-center justify-center gap-2">
           <Button

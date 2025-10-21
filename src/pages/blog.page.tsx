@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import BlogCard from "@/components/Blog.tsx/BlogCard";
-import { BLOGS, type BlogPost } from "@/lib/data/blogs";
+import { getBlogs } from "@/lib/blogs";
 import {
   Select,
   SelectContent,
@@ -16,34 +16,74 @@ const BlogPage = () => {
   const [author, setAuthor] = useState("all");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
+  const [items, setItems] = useState<
+    Array<{
+      id: string | number;
+      title: string;
+      excerpt: string;
+      author: string;
+      coverUrl?: string;
+      views: number;
+      publishedAt?: string;
+    }>
+  >([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const blogs = await getBlogs();
+        if (!isMounted) return;
+        const mapped = (Array.isArray(blogs) ? blogs : []).map(
+          (b: any, idx: number) => ({
+            id: b._id ?? idx,
+            title: b.title,
+            excerpt: b.description,
+            author: b.artistName,
+            coverUrl: b.image,
+            views: Number(b.views ?? 0),
+          })
+        );
+        setItems(mapped);
+        setError(null);
+      } catch (e) {
+        setError("Failed to load blogs");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const authors = useMemo(() => {
     const set = new Set<string>(["all"]);
-    BLOGS.forEach((b) => set.add(b.author));
+    items.forEach((b) => set.add(b.author));
     return Array.from(set);
-  }, []);
+  }, [items]);
 
   const filtered = useMemo(() => {
-    const base = BLOGS.filter((b) =>
-      b.title.toLowerCase().includes(query.toLowerCase().trim())
-    ).filter((b) => (author === "all" ? true : b.author === author));
+    const base = items
+      .filter((b) => b.title.toLowerCase().includes(query.toLowerCase().trim()))
+      .filter((b) => (author === "all" ? true : b.author === author));
     const sorted = [...base].sort((a, b) => {
-      if (sort === "newest")
-        return (
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-        );
+      if (sort === "newest") return Number(b.id) - Number(a.id);
       if (sort === "views-desc") return b.views - a.views;
       if (sort === "title-asc") return a.title.localeCompare(b.title);
       return 0;
     });
     return sorted;
-  }, [query, author, sort]);
+  }, [items, query, author, sort]);
 
   const pageSize = 9;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(Math.max(1, page), totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const visible: BlogPost[] = filtered.slice(startIndex, startIndex + pageSize);
+  const visible = filtered.slice(startIndex, startIndex + pageSize);
 
   useEffect(() => setPage(1), [query, author, sort]);
 
@@ -93,11 +133,15 @@ const BlogPage = () => {
           </Select>
         </div>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {visible.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
-        </section>
+        {error ? (
+          <div className="text-sm text-destructive">{error}</div>
+        ) : (
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {(loading ? [] : visible).map((post) => (
+              <BlogCard key={post.id} post={post} />
+            ))}
+          </section>
+        )}
 
         <div className="mt-6 flex items-center justify-center gap-2">
           <Button
