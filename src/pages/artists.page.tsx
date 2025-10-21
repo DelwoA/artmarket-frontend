@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import ArtistCard, {
   type ArtistListItem,
 } from "@/components/Artists/ArtistCard";
+import { slugify } from "@/lib/utils";
 import COUNTRIES from "@/lib/data/countries";
 import { getArtists } from "@/lib/artists";
 import {
@@ -39,7 +40,7 @@ const ArtistsPage = () => {
             avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
               a.name
             )}&background=E5E7EB&color=111827&size=128`,
-            profileUrl: "#",
+            profileUrl: `/artists/${slugify(a.name)}`,
             artworksUrl: `/arts?artist=${encodeURIComponent(a.name)}`,
           })
         );
