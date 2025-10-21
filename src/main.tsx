@@ -10,6 +10,7 @@ import ProtectedLayout from "./layouts/protected.layout";
 
 import HomePage from "./pages/home.page";
 import ArtsPage from "./pages/arts.page";
+import ArtPage from "./pages/art.page";
 import ArtistsPage from "./pages/artists.page";
 import BlogsPage from "./pages/blogs.page";
 import BlogPage from "./pages/blog.page";
@@ -38,6 +39,7 @@ createRoot(document.getElementById("root")!).render(
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/arts" element={<ArtsPage />} />
+              <Route path="/arts/:slug" element={<ArtPage />} />
               <Route path="/artists" element={<ArtistsPage />} />
               <Route path="/blogs" element={<BlogsPage />} />
               <Route path="/blogs/:slug" element={<BlogPage />} />

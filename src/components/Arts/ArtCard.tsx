@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Eye } from "lucide-react";
 import { Link } from "react-router";
+import { slugify } from "@/lib/utils";
 
 type Props = {
   item: {
@@ -21,9 +22,11 @@ const ArtCard = ({ item }: Props) => {
     maximumFractionDigits: 0,
   }).format(item.price);
 
+  const slug = slugify(item.title);
+
   return (
     <article className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <Link to="#" className="block">
+      <Link to={`/arts/${slug}`} className="block">
         <div className="aspect-[4/3] w-full bg-muted/20">
           {item.imageUrl ? (
             <img
@@ -56,7 +59,7 @@ const ArtCard = ({ item }: Props) => {
         </div>
 
         <Button asChild variant="outline" className="mt-3 w-full">
-          <Link to="#">View</Link>
+          <Link to={`/arts/${slug}`}>View</Link>
         </Button>
       </div>
     </article>
