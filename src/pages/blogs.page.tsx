@@ -41,7 +41,7 @@ const BlogsPage = () => {
           (b: any, idx: number) => ({
             id: b._id ?? idx,
             title: b.title,
-            excerpt: b.description,
+            excerpt: b.subtitle, // show subtitle on card per spec
             author: b.artistName,
             coverUrl: b.image,
             views: Number(b.views ?? 0),
