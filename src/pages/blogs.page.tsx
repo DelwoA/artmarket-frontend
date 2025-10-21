@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import BlogCard from "@/components/Blogs.tsx/BlogCard";
+import BlogCard from "@/components/Blogs/BlogCard";
 import { getBlogs } from "@/lib/blogs";
 import {
   Select,

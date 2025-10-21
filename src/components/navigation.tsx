@@ -51,13 +51,13 @@ const Navigation = () => {
               <Link to="/">Home</Link>
             </div>
             <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
-              <Link to="/artist">Artists</Link>
+              <Link to="/artists">Artists</Link>
             </div>
             <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
-              <Link to="/art">Arts</Link>
+              <Link to="/arts">Arts</Link>
             </div>
             <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
-              <Link to="/blog">Blogs</Link>
+              <Link to="/blogs">Blogs</Link>
             </div>
             <div className="hidden sm:block ml-8 font-medium hover:text-slate-500 transition-colors">
               <Link to="/buy-now">Buy Now</Link>
@@ -154,21 +154,21 @@ const Navigation = () => {
                   Home
                 </Link>
                 <Link
-                  to="/artist"
+                  to="/artists"
                   className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Artists
                 </Link>
                 <Link
-                  to="/art"
+                  to="/arts"
                   className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Arts
                 </Link>
                 <Link
-                  to="/blog"
+                  to="/blogs"
                   className="block px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 transition-colors duration-150"
                   onClick={() => setIsMenuOpen(false)}
                 >
