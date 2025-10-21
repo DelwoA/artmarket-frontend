@@ -12,6 +12,7 @@ import HomePage from "./pages/home.page";
 import ArtsPage from "./pages/arts.page";
 import ArtistsPage from "./pages/artists.page";
 import BlogsPage from "./pages/blogs.page";
+import BlogPage from "./pages/blog.page";
 import BuyNowPage from "./pages/buy-now.page";
 import AdminPage from "./pages/admin.page";
 import SignInPage from "./pages/sign-in.page";
@@ -39,6 +40,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/arts" element={<ArtsPage />} />
               <Route path="/artists" element={<ArtistsPage />} />
               <Route path="/blogs" element={<BlogsPage />} />
+              <Route path="/blogs/:slug" element={<BlogPage />} />
               <Route path="/buy-now" element={<BuyNowPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />

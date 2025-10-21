@@ -12,3 +12,13 @@ export function formatPrice(price: number | string) {
     maximumFractionDigits: 2,
   });
 }
+
+// Create a URL-friendly slug from a string
+export function slugify(input: string) {
+  return String(input)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}

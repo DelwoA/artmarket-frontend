@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { Link } from "react-router";
+import { slugify } from "@/lib/utils";
 
 type Props = {
   post: {
@@ -14,9 +15,11 @@ type Props = {
 };
 
 const BlogCard = ({ post }: Props) => {
+  const slug = slugify(post.title);
+
   return (
     <article className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <Link to={`#`} className="block">
+      <Link to={`/blogs/${slug}`} className="block">
         <div className="aspect-[4/3] w-full bg-muted/20">
           {post.coverUrl ? (
             <img
@@ -47,7 +50,7 @@ const BlogCard = ({ post }: Props) => {
         </div>
 
         <Button asChild variant="outline" className="mt-4 w-full">
-          <Link to={`#`}>Read</Link>
+          <Link to={`/blogs/${slug}`}>Read</Link>
         </Button>
       </div>
     </article>
