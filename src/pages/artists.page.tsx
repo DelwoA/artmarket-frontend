@@ -40,7 +40,7 @@ const ArtistsPage = () => {
               a.name
             )}&background=E5E7EB&color=111827&size=128`,
             profileUrl: "#",
-            artworksUrl: "#",
+            artworksUrl: `/arts?artist=${encodeURIComponent(a.name)}`,
           })
         );
         setItems(mapped);

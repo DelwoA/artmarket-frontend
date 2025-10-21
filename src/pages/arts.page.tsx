@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router";
 import { Search } from "lucide-react";
 import ArtCard from "@/components/Arts/ArtCard";
 import { getArts } from "@/lib/arts";
@@ -12,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const ArtsPage = () => {
+  const location = useLocation();
   const [query, setQuery] = useState("");
   const [artist, setArtist] = useState("all");
   const [sort, setSort] = useState("newest");
@@ -96,6 +98,16 @@ const ArtsPage = () => {
   const visible = filtered.slice(startIndex, startIndex + pageSize);
 
   useEffect(() => setPage(1), [query, artist, sort]);
+
+  // Initialize artist filter from query string (?artist=Name)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const artistParam = params.get("artist");
+    if (artistParam) {
+      setArtist(artistParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="w-full bg-background">
