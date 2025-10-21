@@ -9,9 +9,9 @@ import MainLayout from "./layouts/main.layout";
 import ProtectedLayout from "./layouts/protected.layout";
 
 import HomePage from "./pages/home.page";
-import ArtPage from "./pages/art.page";
-import ArtistPage from "./pages/artist.page";
-import BlogPage from "./pages/blog.page";
+import ArtsPage from "./pages/arts.page";
+import ArtistsPage from "./pages/artists.page";
+import BlogsPage from "./pages/blogs.page";
 import BuyNowPage from "./pages/buy-now.page";
 import AdminPage from "./pages/admin.page";
 import SignInPage from "./pages/sign-in.page";
@@ -36,9 +36,9 @@ createRoot(document.getElementById("root")!).render(
           <Route element={<RootLayout />}>
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
-              <Route path="/art" element={<ArtPage />} />
-              <Route path="/artist" element={<ArtistPage />} />
-              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/arts" element={<ArtsPage />} />
+              <Route path="/artists" element={<ArtistsPage />} />
+              <Route path="/blogs" element={<BlogsPage />} />
               <Route path="/buy-now" element={<BuyNowPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
