@@ -1,296 +1,252 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ARTISTS } from "@/lib/data/artists";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getArtists } from "@/lib/artists";
+import { getArts } from "@/lib/arts";
+import { getBlogs } from "@/lib/blogs";
+import {
+  getHomepageConfig,
+  saveHomepageConfig,
+  type HomeConfig,
+} from "@/lib/homepage";
 import { toast } from "sonner";
 
-type Slide = {
+type ArtistItem = {
+  id: string;
+  name: string;
+  location: string;
+  avatarUrl: string;
+};
+type ArtItem = {
   id: string;
   title: string;
-  subtitle: string;
-  image?: string;
+  artistName: string;
+  imageUrl?: string;
+};
+type BlogItem = {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
 };
 
-const seedSlides: Slide[] = [
-  {
-    id: "s1",
-    title: "Discover Unique Art",
-    subtitle: "Curated works from emerging artists worldwide",
-    image:
-      "https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1600&auto=format&fit=crop",
-  },
-  {
-    id: "s2",
-    title: "Support Creators",
-    subtitle: "Own originals and limited editions",
-  },
-];
+const MAX = { artists: 4, arts: 8, blogs: 6 } as const;
 
 const HomepageConfig = () => {
-  // Hero slides state
-  const [slides, setSlides] = useState<Slide[]>(seedSlides);
-  const [editing, setEditing] = useState<Slide | null>(null);
-  const [draft, setDraft] = useState<Slide | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [artists, setArtists] = useState<ArtistItem[]>([]);
+  const [arts, setArts] = useState<ArtItem[]>([]);
+  const [blogs, setBlogs] = useState<BlogItem[]>([]);
+  const [saved, setSaved] = useState<HomeConfig | null>(null);
+  const [draft, setDraft] = useState<HomeConfig>({
+    featuredArtistIds: [],
+    featuredArtIds: [],
+    featuredBlogIds: [],
+  });
 
-  // Featured artists state
-  const [featuredIds, setFeaturedIds] = useState<number[]>([1, 3, 7]);
-  const approvedArtists = ARTISTS;
-  const maxFeatured = 4;
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const [artistsRaw, artsRaw, blogsRaw, config] = await Promise.all([
+          getArtists(),
+          getArts(),
+          getBlogs(),
+          getHomepageConfig(),
+        ]);
 
-  const featured = useMemo(
-    () => approvedArtists.filter((a) => featuredIds.includes(a.id)),
-    [approvedArtists, featuredIds]
-  );
-  const available = useMemo(
-    () => approvedArtists.filter((a) => !featuredIds.includes(a.id)),
-    [approvedArtists, featuredIds]
-  );
+        if (!isMounted) return;
+        setArtists(
+          (Array.isArray(artistsRaw) ? artistsRaw : []).map(
+            (a: any, i: number) => ({
+              id: String(a._id ?? i),
+              name: a.name,
+              location: `${a.city}, ${a.country}`,
+              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                a.name
+              )}&background=E5E7EB&color=111827&size=64`,
+            })
+          )
+        );
+        setArts(
+          (Array.isArray(artsRaw) ? artsRaw : []).map(
+            (art: any, i: number) => ({
+              id: String(art._id ?? i),
+              title: art.title,
+              artistName: art.artistName,
+              imageUrl:
+                Array.isArray(art.images) && art.images.length > 0
+                  ? art.images[0]
+                  : undefined,
+            })
+          )
+        );
+        setBlogs(
+          (Array.isArray(blogsRaw) ? blogsRaw : []).map(
+            (b: any, i: number) => ({
+              id: String(b._id ?? i),
+              title: b.title,
+              author: b.artistName,
+              coverUrl: b.image,
+            })
+          )
+        );
+        setSaved(config);
+        setDraft(config);
+      } catch (e) {
+        toast.error("Failed to load homepage data");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const startNewSlide = () => {
-    const s: Slide = { id: `s${Date.now()}`, title: "", subtitle: "" };
-    setEditing(s);
-    setDraft(s);
+  const byId = <T extends { id: string }>(list: T[]) =>
+    Object.fromEntries(list.map((x) => [x.id, x]));
+
+  const artistsMap = useMemo(() => byId(artists), [artists]);
+  const artsMap = useMemo(() => byId(arts), [arts]);
+  const blogsMap = useMemo(() => byId(blogs), [blogs]);
+
+  const move = (arr: string[], id: string, dir: -1 | 1) => {
+    const idx = arr.indexOf(id);
+    const j = idx + dir;
+    if (idx < 0 || j < 0 || j >= arr.length) return arr;
+    const next = arr.slice();
+    const [sp] = next.splice(idx, 1);
+    next.splice(j, 0, sp);
+    return next;
   };
-  const startEditSlide = (s: Slide) => {
-    setEditing(s);
-    setDraft({ ...s });
+
+  const remove = (arr: string[], id: string) => arr.filter((x) => x !== id);
+  const add = (arr: string[], id: string, max: number) =>
+    arr.includes(id) || arr.length >= max ? arr : [...arr, id];
+
+  const resetDraft = () => {
+    if (!saved) return;
+    setDraft(saved);
+    toast.info("Changes cleared");
   };
-  const saveSlide = () => {
-    if (!draft) return;
-    setSlides((cur) => {
-      const idx = cur.findIndex((s) => s.id === draft.id);
-      if (idx === -1) return [...cur, draft];
-      const next = cur.slice();
-      next[idx] = draft;
-      return next;
-    });
-    setEditing(null);
-    setDraft(null);
-    toast.success("Hero slides saved");
-  };
-  const deleteSlide = (id: string) => {
-    setSlides((cur) => cur.filter((s) => s.id !== id));
-    if (editing?.id === id) {
-      setEditing(null);
-      setDraft(null);
+
+  const onSave = async () => {
+    try {
+      const payload: HomeConfig = {
+        featuredArtistIds: draft.featuredArtistIds,
+        featuredArtIds: draft.featuredArtIds,
+        featuredBlogIds: draft.featuredBlogIds,
+      };
+      const result = await saveHomepageConfig(payload);
+      setSaved(result);
+      setDraft(result);
+      toast.success("Homepage saved");
+    } catch (e) {
+      toast.error("Failed to save homepage");
     }
-    toast.warning("Slide deleted");
-  };
-  const moveSlide = (id: string, dir: -1 | 1) => {
-    setSlides((cur) => {
-      const idx = cur.findIndex((s) => s.id === id);
-      const j = idx + dir;
-      if (idx < 0 || j < 0 || j >= cur.length) return cur;
-      const next = cur.slice();
-      const [sp] = next.splice(idx, 1);
-      next.splice(j, 0, sp);
-      return next;
-    });
-  };
-
-  const addFeatured = (id: number) => {
-    if (featuredIds.length >= maxFeatured) {
-      toast.info(`You can feature up to ${maxFeatured} artists`);
-      return;
-    }
-    setFeaturedIds((cur) => [...cur, id]);
-  };
-  const removeFeatured = (id: number) => {
-    setFeaturedIds((cur) => cur.filter((x) => x !== id));
-  };
-  const moveFeatured = (id: number, dir: -1 | 1) => {
-    setFeaturedIds((cur) => {
-      const idx = cur.indexOf(id);
-      const j = idx + dir;
-      if (idx < 0 || j < 0 || j >= cur.length) return cur;
-      const next = cur.slice();
-      const [sp] = next.splice(idx, 1);
-      next.splice(j, 0, sp);
-      return next;
-    });
-  };
-  const saveHomepage = () => {
-    toast.success("Homepage configuration saved");
   };
 
   return (
-    <div className="space-y-6 min-h-[81vh] mb-15">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Hero Slides */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Hero Slides</h3>
-            <Button size="sm" onClick={startNewSlide}>
-              New Slide
-            </Button>
-          </div>
-          <Separator className="my-3" />
-          <div className="space-y-3">
-            {slides.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {s.image ? (
-                  <img
-                    src={s.image}
-                    alt="bg"
-                    className="size-12 rounded object-cover"
-                  />
-                ) : (
-                  <div className="size-12 rounded bg-muted" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">
-                    {s.title || "(Untitled)"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {s.subtitle}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveSlide(s.id, -1)}
-                    disabled={i === 0}
-                  >
-                    Up
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveSlide(s.id, 1)}
-                    disabled={i === slides.length - 1}
-                  >
-                    Down
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => startEditSlide(s)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => deleteSlide(s.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {slides.length === 0 && (
-              <p className="text-sm text-muted-foreground">No slides yet.</p>
-            )}
-          </div>
-          {draft && (
-            <div className="mt-4 rounded-md border p-4 space-y-3">
-              <h4 className="text-sm font-semibold">
-                {editing ? "Edit Slide" : "New Slide"}
-              </h4>
-              <Input
-                placeholder="Title"
-                value={draft.title}
-                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              />
-              <Textarea
-                placeholder="Subtitle"
-                value={draft.subtitle}
-                onChange={(e) =>
-                  setDraft({ ...draft, subtitle: e.target.value })
-                }
-              />
-              <Input
-                placeholder="Background image URL (optional)"
-                value={draft.image ?? ""}
-                onChange={(e) =>
-                  setDraft({ ...draft, image: e.target.value || undefined })
-                }
-              />
-              <div className="flex items-center gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(null);
-                    setDraft(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={saveSlide}>Save Slide</Button>
-              </div>
-            </div>
-          )}
-        </Card>
+    <div className="space-y-4 min-h-[81vh] mb-15">
+      <Tabs defaultValue="artists" className="flex flex-col h-full">
+        <TabsList>
+          <TabsTrigger value="artists">Featured Artists</TabsTrigger>
+          <TabsTrigger value="arts">Featured Arts</TabsTrigger>
+          <TabsTrigger value="blogs">Featured Blogs</TabsTrigger>
+        </TabsList>
 
-        {/* Featured Artists */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Featured Artists</h3>
-            <Badge variant="secondary">
-              {featuredIds.length}/{maxFeatured}
-            </Badge>
-          </div>
-          <Separator className="my-3" />
-          <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Selected (draggable via Up/Down)
-            </p>
-            {featured.map((a, i) => (
-              <div key={a.id} className="flex items-center gap-3">
-                <Avatar className="size-9">
-                  <AvatarImage src={a.avatarUrl} />
-                  <AvatarFallback>{a.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{a.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {a.location}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveFeatured(a.id, -1)}
-                    disabled={i === 0}
-                  >
-                    Up
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveFeatured(a.id, 1)}
-                    disabled={i === featured.length - 1}
-                  >
-                    Down
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => removeFeatured(a.id)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {featured.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No featured artists yet.
-              </p>
-            )}
+        {/* Artists Tab */}
+        <TabsContent value="artists">
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Featured Artists</h3>
+              <Badge variant="secondary">
+                {draft.featuredArtistIds.length}/{MAX.artists}
+              </Badge>
+            </div>
+            <Separator className="my-3" />
+
+            <p className="text-xs text-muted-foreground">Selected</p>
+            <div className="space-y-3">
+              {draft.featuredArtistIds.map((id, i) => {
+                const a = artistsMap[id];
+                if (!a) return null;
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <Avatar className="size-9">
+                      <AvatarImage src={a.avatarUrl} />
+                      <AvatarFallback>{a.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{a.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {a.location}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtistIds: move(
+                              d.featuredArtistIds,
+                              id,
+                              -1
+                            ),
+                          }))
+                        }
+                        disabled={i === 0}
+                      >
+                        Up
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtistIds: move(d.featuredArtistIds, id, 1),
+                          }))
+                        }
+                        disabled={i === draft.featuredArtistIds.length - 1}
+                      >
+                        Down
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtistIds: remove(d.featuredArtistIds, id),
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {draft.featuredArtistIds.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No artists selected.
+                </p>
+              )}
+            </div>
 
             <Separator className="my-3" />
             <p className="text-xs text-muted-foreground">Available</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {available.slice(0, 12).map((a) => (
+              {artists.map((a) => (
                 <div
                   key={a.id}
                   className="flex items-center gap-3 rounded-md border p-2"
@@ -307,20 +263,286 @@ const HomepageConfig = () => {
                   </div>
                   <Button
                     size="sm"
-                    disabled={featuredIds.length >= maxFeatured}
-                    onClick={() => addFeatured(a.id)}
+                    disabled={draft.featuredArtistIds.length >= MAX.artists}
+                    onClick={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        featuredArtistIds: add(
+                          d.featuredArtistIds,
+                          a.id,
+                          MAX.artists
+                        ),
+                      }))
+                    }
                   >
                     Add
                   </Button>
                 </div>
               ))}
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </TabsContent>
 
-      <div className="flex items-center justify-end">
-        <Button onClick={saveHomepage}>Save Homepage</Button>
+        {/* Arts Tab */}
+        <TabsContent value="arts">
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Featured Arts</h3>
+              <Badge variant="secondary">
+                {draft.featuredArtIds.length}/{MAX.arts}
+              </Badge>
+            </div>
+            <Separator className="my-3" />
+
+            <p className="text-xs text-muted-foreground">Selected</p>
+            <div className="space-y-3">
+              {draft.featuredArtIds.map((id, i) => {
+                const art = artsMap[id];
+                if (!art) return null;
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <div className="size-9 rounded bg-muted overflow-hidden">
+                      {art.imageUrl ? (
+                        <img
+                          src={art.imageUrl}
+                          className="size-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{art.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        by {art.artistName}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtIds: move(d.featuredArtIds, id, -1),
+                          }))
+                        }
+                        disabled={i === 0}
+                      >
+                        Up
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtIds: move(d.featuredArtIds, id, 1),
+                          }))
+                        }
+                        disabled={i === draft.featuredArtIds.length - 1}
+                      >
+                        Down
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredArtIds: remove(d.featuredArtIds, id),
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {draft.featuredArtIds.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No arts selected.
+                </p>
+              )}
+            </div>
+
+            <Separator className="my-3" />
+            <p className="text-xs text-muted-foreground">Available</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {arts.map((art) => (
+                <div
+                  key={art.id}
+                  className="flex items-center gap-3 rounded-md border p-2"
+                >
+                  <div className="size-8 rounded bg-muted overflow-hidden">
+                    {art.imageUrl ? (
+                      <img
+                        src={art.imageUrl}
+                        className="size-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm">{art.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      by {art.artistName}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={draft.featuredArtIds.length >= MAX.arts}
+                    onClick={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        featuredArtIds: add(d.featuredArtIds, art.id, MAX.arts),
+                      }))
+                    }
+                  >
+                    Add
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* Blogs Tab */}
+        <TabsContent value="blogs">
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Featured Blogs</h3>
+              <Badge variant="secondary">
+                {draft.featuredBlogIds.length}/{MAX.blogs}
+              </Badge>
+            </div>
+            <Separator className="my-3" />
+
+            <p className="text-xs text-muted-foreground">Selected</p>
+            <div className="space-y-3">
+              {draft.featuredBlogIds.map((id, i) => {
+                const b = blogsMap[id];
+                if (!b) return null;
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <div className="size-9 rounded bg-muted overflow-hidden">
+                      {b.coverUrl ? (
+                        <img
+                          src={b.coverUrl}
+                          className="size-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{b.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {b.author}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredBlogIds: move(d.featuredBlogIds, id, -1),
+                          }))
+                        }
+                        disabled={i === 0}
+                      >
+                        Up
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredBlogIds: move(d.featuredBlogIds, id, 1),
+                          }))
+                        }
+                        disabled={i === draft.featuredBlogIds.length - 1}
+                      >
+                        Down
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            featuredBlogIds: remove(d.featuredBlogIds, id),
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {draft.featuredBlogIds.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No blogs selected.
+                </p>
+              )}
+            </div>
+
+            <Separator className="my-3" />
+            <p className="text-xs text-muted-foreground">Available</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {blogs.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center gap-3 rounded-md border p-2"
+                >
+                  <div className="size-8 rounded bg-muted overflow-hidden">
+                    {b.coverUrl ? (
+                      <img
+                        src={b.coverUrl}
+                        className="size-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm">{b.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {b.author}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={draft.featuredBlogIds.length >= MAX.blogs}
+                    onClick={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        featuredBlogIds: add(
+                          d.featuredBlogIds,
+                          b.id,
+                          MAX.blogs
+                        ),
+                      }))
+                    }
+                  >
+                    Add
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          onClick={resetDraft}
+          disabled={loading || !saved}
+        >
+          Clear Changes
+        </Button>
+        <Button onClick={onSave} disabled={loading}>
+          Save Homepage
+        </Button>
       </div>
     </div>
   );

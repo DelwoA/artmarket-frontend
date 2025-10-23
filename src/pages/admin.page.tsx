@@ -111,12 +111,7 @@ const AdminPage = () => {
                     </div>
                   </DrawerContent>
                 </Drawer>
-                <Button
-                  variant="outline"
-                  onClick={() => toast.info("This is a demo UI")}
-                >
-                  Help
-                </Button>
+                {null}
               </div>
             </header>
 
