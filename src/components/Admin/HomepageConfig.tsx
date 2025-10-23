@@ -156,9 +156,15 @@ const HomepageConfig = () => {
     <div className="space-y-4 min-h-[81vh] mb-15">
       <Tabs defaultValue="artists" className="flex flex-col h-full">
         <TabsList>
-          <TabsTrigger value="artists">Featured Artists</TabsTrigger>
-          <TabsTrigger value="arts">Featured Arts</TabsTrigger>
-          <TabsTrigger value="blogs">Featured Blogs</TabsTrigger>
+          <TabsTrigger value="artists" className="px-11">
+            Featured Artists
+          </TabsTrigger>
+          <TabsTrigger value="arts" className="px-11">
+            Featured Arts
+          </TabsTrigger>
+          <TabsTrigger value="blogs" className="px-11">
+            Featured Blogs
+          </TabsTrigger>
         </TabsList>
 
         {/* Artists Tab */}
