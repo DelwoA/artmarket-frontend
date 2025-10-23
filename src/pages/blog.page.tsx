@@ -6,6 +6,9 @@ import CoverImage from "@/components/Blog/CoverImage";
 import BodyContent from "@/components/Blog/BodyContent";
 import { getBlogs } from "@/lib/blogs";
 import { slugify } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Facebook } from "lucide-react";
+import WhatsAppIcon from "@/components/Blog/WhatsAppIcon";
 
 const BlogPage = () => {
   const params = useParams();
@@ -71,6 +74,33 @@ const BlogPage = () => {
             />
             <CoverImage src={blog.image} alt={blog.title} />
             <BodyContent description={blog.description} />
+            <div className="pt-4 border-t border-border">
+              <div className="text-sm font-medium mb-2">Share this:</div>
+              <div className="flex gap-2">
+                <Button variant="outline" asChild>
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                      `${window.location.origin}/blogs/${slugify(blog.title)}`
+                    )}`}
+                    target="_blank"
+                    rel="nofollow noreferrer noopener"
+                  >
+                    <Facebook className="h-4 w-4 mr-2" /> Facebook
+                  </a>
+                </Button>
+                <Button variant="outline" asChild>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `${window.location.origin}/blogs/${slugify(blog.title)}`
+                    )}`}
+                    target="_blank"
+                    rel="nofollow noreferrer noopener"
+                  >
+                    <WhatsAppIcon className="h-4 w-4 mr-2" /> WhatsApp
+                  </a>
+                </Button>
+              </div>
+            </div>
           </div>
         ) : null}
       </div>
