@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { toast } from "sonner";
+import Comments from "@/components/Art/Comments";
 
 const ArtPage = () => {
   const params = useParams();
@@ -146,6 +147,7 @@ const ArtPage = () => {
                 </Button>
               ) : null}
               <ArtBody description={art.description} />
+              <Comments artId={String(art.id)} />
             </div>
             <div className="order-1 md:order-2">
               <ImageGallery images={art.images} />
