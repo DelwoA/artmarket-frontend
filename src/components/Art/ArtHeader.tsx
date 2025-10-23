@@ -1,4 +1,5 @@
 import { Heart, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   title: string;
@@ -7,6 +8,8 @@ type Props = {
   likes: number;
   views: number;
   availability: "For Sale" | "Not for Sale" | "Sold";
+  liked?: boolean;
+  onToggleLike?: () => void;
 };
 
 const ArtHeader = ({
@@ -16,6 +19,8 @@ const ArtHeader = ({
   likes,
   views,
   availability,
+  liked = false,
+  onToggleLike,
 }: Props) => {
   const priceLabel = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -36,9 +41,21 @@ const ArtHeader = ({
         {availability === "For Sale" ? (
           <div className="font-medium text-foreground">{priceLabel}</div>
         ) : null}
-        <span className="flex items-center gap-1.5">
-          <Heart className="h-4 w-4" /> {likes}
-        </span>
+        <button
+          type="button"
+          onClick={onToggleLike}
+          className="group inline-flex items-center gap-1.5"
+        >
+          <Heart
+            className={cn(
+              "h-4 w-4 transition-colors",
+              liked
+                ? "text-red-500 fill-red-500"
+                : "text-muted-foreground group-hover:text-red-500"
+            )}
+          />
+          <span>{likes}</span>
+        </button>
         <span className="flex items-center gap-1.5">
           <Eye className="h-4 w-4" /> {views}
         </span>

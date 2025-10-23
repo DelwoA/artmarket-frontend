@@ -112,3 +112,23 @@ export const getFeaturedArts = async () => {
     throw error;
   }
 };
+
+// Toggle like for an art (requires auth token)
+export const toggleArtLike = async (artId: string, token: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts/${artId}/like`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      throw new Error("Failed to toggle like");
+    }
+    const data = (await res.json()) as { likes: number; liked: boolean };
+    return data;
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    throw error;
+  }
+};

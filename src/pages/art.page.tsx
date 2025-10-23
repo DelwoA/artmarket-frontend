@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import BackLink from "@/components/Art/BackLink";
 import ArtHeader from "@/components/Art/ArtHeader";
 import ImageGallery from "@/components/Art/ImageGallery";
 import ArtBody from "@/components/Art/ArtBody";
-import { getArts } from "@/lib/arts";
+import { getArts, toggleArtLike } from "@/lib/arts";
 import { slugify } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { toast } from "sonner";
 
 const ArtPage = () => {
   const params = useParams();
+  const navigate = useNavigate();
+  const { isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
   const slug = params[":slug"] || params.slug;
 
   const [art, setArt] = useState<{
@@ -23,6 +28,7 @@ const ArtPage = () => {
     views: number;
     images: string[];
     availability: "For Sale" | "Not for Sale" | "Sold";
+    liked?: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +55,9 @@ const ArtPage = () => {
               | "For Sale"
               | "Not for Sale"
               | "Sold",
+            liked: Array.isArray(found.likedBy)
+              ? found.likedBy.includes(user?.id)
+              : false,
           });
           setError(null);
         } else {
@@ -61,7 +70,37 @@ const ArtPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, user?.id]);
+
+  const handleToggleLike = async () => {
+    if (!art) return;
+    if (!isSignedIn) {
+      toast.info("Please sign in to like this art.");
+      navigate("/signin");
+      return;
+    }
+
+    const previous = { likes: art.likes, liked: art.liked ?? false };
+    const optimistic = {
+      liked: !previous.liked,
+      likes: previous.likes + (!previous.liked ? 1 : -1),
+    };
+    setArt({ ...art, ...optimistic });
+
+    try {
+      const token = await getToken();
+      const result = await toggleArtLike(String(art.id), token || "");
+      setArt((cur) =>
+        cur ? { ...cur, likes: result.likes, liked: result.liked } : cur
+      );
+    } catch (e) {
+      // revert on error
+      setArt((cur) =>
+        cur ? { ...cur, likes: previous.likes, liked: previous.liked } : cur
+      );
+      toast.error("Failed to update like. Please try again.");
+    }
+  };
 
   return (
     <main className="w-full bg-background">
@@ -93,6 +132,8 @@ const ArtPage = () => {
                 likes={art.likes}
                 views={art.views}
                 availability={art.availability}
+                liked={!!art.liked}
+                onToggleLike={handleToggleLike}
               />
               {art.availability === "For Sale" ? (
                 <Button size="lg" className="mb-4">
