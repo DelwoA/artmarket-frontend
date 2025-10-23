@@ -4,7 +4,7 @@ type Props = {
   onClick?: () => void;
 };
 
-const AvailableNowFilter = ({ label, active = false, onClick }: Props) => (
+const FilterPill = ({ label, active = false, onClick }: Props) => (
   <button
     type="button"
     aria-pressed={active}
@@ -19,4 +19,4 @@ const AvailableNowFilter = ({ label, active = false, onClick }: Props) => (
   </button>
 );
 
-export default AvailableNowFilter;
+export default FilterPill;

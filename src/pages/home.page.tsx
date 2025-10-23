@@ -1,13 +1,15 @@
 import Hero from "@/components/Home/Hero";
 import FeaturedArtists from "@/components/Home/FeaturedArtists";
-import AvailableNow from "@/components/Home/AvailableNow";
+import FeaturedArts from "@/components/Home/FeaturedArts";
+import FeaturedBlogs from "@/components/Home/FeaturedBlogs";
 
 const HomePage = () => {
   return (
     <>
       <Hero />
       <FeaturedArtists />
-      <AvailableNow />
+      <FeaturedArts />
+      <FeaturedBlogs />
     </>
   );
 };

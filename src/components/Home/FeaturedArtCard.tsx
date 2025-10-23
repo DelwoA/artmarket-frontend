@@ -14,7 +14,7 @@ type Props = {
   };
 };
 
-const AvailableNowCard = ({ item }: Props) => {
+const FeaturedArtCard = ({ item }: Props) => {
   const priceLabel = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -64,4 +64,4 @@ const AvailableNowCard = ({ item }: Props) => {
   );
 };
 
-export default AvailableNowCard;
+export default FeaturedArtCard;

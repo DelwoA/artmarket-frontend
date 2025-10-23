@@ -1,21 +1,20 @@
 import { Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
-import AvailableNowCard from "@/components/Home/AvailableNowCard";
-import AvailableNowFilter from "@/components/Home/AvailableNowFilter";
-import { getArts } from "@/lib/arts";
+import FilterPill from "@/components/Home/FilterPill";
+import BlogCard from "@/components/Blogs/BlogCard";
+import { getBlogs } from "@/lib/blogs";
 
-const AvailableNow = () => {
-  const [items, setItems] = useState<
-    Array<{
-      id: string | number;
-      title: string;
-      artistName: string;
-      price: number;
-      likes: number;
-      views: number;
-      imageUrl?: string;
-    }>
-  >([]);
+type BlogItem = {
+  id: string | number;
+  title: string;
+  excerpt: string;
+  author: string;
+  coverUrl?: string;
+  views: number;
+};
+
+const FeaturedBlogs = () => {
+  const [items, setItems] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,26 +23,22 @@ const AvailableNow = () => {
     (async () => {
       try {
         setLoading(true);
-        const arts = await getArts();
+        const blogs = await getBlogs();
         if (!isMounted) return;
-        const mapped = (Array.isArray(arts) ? arts : [])
-          .slice(0, 8)
-          .map((art: any, idx: number) => ({
-            id: art._id ?? idx,
-            title: art.title,
-            artistName: art.artistName,
-            price: Number(art.price ?? 0),
-            likes: Number(art.likes ?? 0),
-            views: Number(art.views ?? 0),
-            imageUrl:
-              Array.isArray(art.images) && art.images.length > 0
-                ? art.images[0]
-                : undefined,
+        const mapped: BlogItem[] = (Array.isArray(blogs) ? blogs : [])
+          .slice(0, 6)
+          .map((b: any, idx: number) => ({
+            id: b._id ?? idx,
+            title: b.title,
+            excerpt: b.subtitle,
+            author: b.artistName,
+            coverUrl: b.image,
+            views: Number(b.views ?? 0),
           }));
         setItems(mapped);
         setError(null);
       } catch (e) {
-        setError("Failed to load arts");
+        setError("Failed to load blogs");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -53,20 +48,18 @@ const AvailableNow = () => {
     };
   }, []);
 
-  type SortKey = "Newest" | "Price" | "Popularity";
+  type SortKey = "Newest" | "Popularity" | "Title";
   const [activeSort, setActiveSort] = useState<SortKey>("Newest");
 
   const sorted = useMemo(() => {
     const base = [...items];
     switch (activeSort) {
-      case "Price":
-        return base.sort((a, b) => b.price - a.price);
       case "Popularity":
-        // Popularity proxy: likes then views
-        return base.sort((a, b) => b.likes - a.likes || b.views - a.views);
+        return base.sort((a, b) => b.views - a.views);
+      case "Title":
+        return base.sort((a, b) => a.title.localeCompare(b.title));
       case "Newest":
       default:
-        // No createdAt, emulate "newest" by higher id first
         return base.sort((a, b) => Number(b.id) - Number(a.id));
     }
   }, [items, activeSort]);
@@ -76,40 +69,40 @@ const AvailableNow = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="mb-4 md:mb-6 flex items-center justify-between">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Available Now
+            Featured Blogs
           </h2>
           <Link
-            to="/art"
+            to="/blogs"
             className="text-sm font-medium hover:underline hover:text-foreground"
           >
-            Browse all for-sale art →
+            View all →
           </Link>
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs md:text-sm">
-          <AvailableNowFilter
+          <FilterPill
             label="Newest"
             active={activeSort === "Newest"}
             onClick={() => setActiveSort("Newest")}
           />
-          <AvailableNowFilter
-            label="Price"
-            active={activeSort === "Price"}
-            onClick={() => setActiveSort("Price")}
-          />
-          <AvailableNowFilter
+          <FilterPill
             label="Popularity"
             active={activeSort === "Popularity"}
             onClick={() => setActiveSort("Popularity")}
+          />
+          <FilterPill
+            label="Title (A–Z)"
+            active={activeSort === "Title"}
+            onClick={() => setActiveSort("Title")}
           />
         </div>
 
         {error ? (
           <div className="text-sm text-destructive">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {(loading ? [] : sorted).map((item) => (
-              <AvailableNowCard key={item.id} item={item} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(loading ? [] : sorted).map((post) => (
+              <BlogCard key={post.id} post={post} />
             ))}
           </div>
         )}
@@ -118,4 +111,4 @@ const AvailableNow = () => {
   );
 };
 
-export default AvailableNow;
+export default FeaturedBlogs;
