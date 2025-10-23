@@ -4,7 +4,7 @@ import BackLink from "@/components/Art/BackLink";
 import ArtHeader from "@/components/Art/ArtHeader";
 import ImageGallery from "@/components/Art/ImageGallery";
 import ArtBody from "@/components/Art/ArtBody";
-import { getArts, toggleArtLike } from "@/lib/arts";
+import { getArts, toggleArtLike, incrementArtView } from "@/lib/arts";
 import { slugify } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,19 @@ const ArtPage = () => {
       isMounted = false;
     };
   }, [slug, user?.id]);
+
+  // Increment view on art load or when art id changes
+  useEffect(() => {
+    (async () => {
+      if (!art?.id) return;
+      try {
+        const res = await incrementArtView(String(art.id));
+        setArt((cur) => (cur ? { ...cur, views: res.views } : cur));
+      } catch (e) {
+        // non-blocking; ignore errors
+      }
+    })();
+  }, [art?.id]);
 
   const handleToggleLike = async () => {
     if (!art) return;

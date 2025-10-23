@@ -132,3 +132,20 @@ export const toggleArtLike = async (artId: string, token: string) => {
     throw error;
   }
 };
+
+// Increment art view (public)
+export const incrementArtView = async (artId: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/arts/${artId}/view`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      throw new Error("Failed to increment view");
+    }
+    const data = (await res.json()) as { views: number };
+    return data;
+  } catch (error) {
+    console.error("Error incrementing view:", error);
+    throw error;
+  }
+};
