@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Eye, MapPin } from "lucide-react";
 import { Link } from "react-router";
+import { slugify } from "@/lib/utils";
 
 export type Artist = {
   id: number;
@@ -18,6 +19,8 @@ type Props = {
 };
 
 const FeaturedArtistCard = ({ artist }: Props) => {
+  const slug = slugify(artist.name);
+
   return (
     <article className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-sm">
       <div className="flex items-start gap-4">
@@ -53,7 +56,7 @@ const FeaturedArtistCard = ({ artist }: Props) => {
         asChild
         className="mt-6 w-full bg-white text-foreground hover:bg-slate-100"
       >
-        <Link to={"#"}>View Profile</Link>
+        <Link to={`/artists/${slug}`}>View Profile</Link>
       </Button>
     </article>
   );
