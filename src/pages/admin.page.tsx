@@ -15,7 +15,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { MenuIcon } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useUser } from "@clerk/clerk-react";
 import { useAuth } from "@clerk/clerk-react";
@@ -99,7 +98,6 @@ const AdminPage = () => {
 
   return (
     <main className="w-full bg-background">
-      <Toaster position="top-right" richColors />
       <div className="container mx-auto px-4 md:px-8 py-6">
         <div className="flex gap-6">
           <Sidebar active={active} onNavigate={setActive} />

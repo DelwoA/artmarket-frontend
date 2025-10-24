@@ -27,7 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { X, Share, Image } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
@@ -468,7 +467,6 @@ const CreateNewArtPage = () => {
           </Card>
         </div>
       </div>
-      <Toaster position="bottom-right" />
     </main>
   );
 };
