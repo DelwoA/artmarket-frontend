@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { ARTISTS, type Artist } from "@/lib/data/artists";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,25 +25,23 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/clerk-react";
+import {
+  getAdminArtists,
+  approveArtistAdmin,
+  rejectArtistAdmin,
+} from "@/lib/artists";
+import { getUsersPublic } from "@/lib/users";
 
-type PendingArtist = Artist & {
-  email: string;
-  submittedAt: string;
+type PendingArtist = {
+  id: string;
+  clerkUserId: string;
+  name: string;
+  location: string;
+  bio?: string;
+  submittedAt?: string;
+  avatarUrl?: string;
 };
-
-function toEmail(name: string) {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z]+/g, ".")
-    .replace(/\.+/g, ".");
-  return `${slug}@example.com`;
-}
-
-const seedPending: PendingArtist[] = ARTISTS.slice(0, 8).map((a, i) => ({
-  ...a,
-  email: toEmail(a.name),
-  submittedAt: new Date(Date.now() - (i + 1) * 3600_000).toISOString(),
-}));
 
 type Props = {
   onApproved?: (count: number) => void;
@@ -52,18 +49,54 @@ type Props = {
 };
 
 const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
+  const { getToken } = useAuth();
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Record<number, boolean>>({});
-  const [pending, setPending] = useState<PendingArtist[]>(seedPending);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [pending, setPending] = useState<PendingArtist[]>([]);
   const [rejecting, setRejecting] = useState<PendingArtist | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        const list = await getAdminArtists("pending", token || undefined);
+        const items: PendingArtist[] = (Array.isArray(list) ? list : []).map(
+          (a: any) => ({
+            id: String(a._id),
+            clerkUserId: a.clerkUserId,
+            name: a.name,
+            location: `${a.city}, ${a.country}`,
+            bio: a.bio,
+            submittedAt: a.submittedAt,
+          })
+        );
+        const userIds = items.map((i) => i.clerkUserId);
+        const users = await getUsersPublic(userIds);
+        const map = Object.fromEntries(users.map((u) => [u.id, u]));
+        const enriched = items.map((i) => ({
+          ...i,
+          name: map[i.clerkUserId]?.fullName || i.name,
+          avatarUrl: map[i.clerkUserId]?.imageUrl || undefined,
+        }));
+        if (mounted) setPending(enriched);
+      } catch {
+        toast.error("Failed to load pending artists");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [getToken]);
 
   const allSelectedIds = useMemo(
-    () =>
-      Object.entries(selected)
-        .filter(([, v]) => v)
-        .map(([k]) => Number(k)),
+    () => Object.keys(selected).filter((k) => selected[k]),
     [selected]
   );
 
@@ -71,28 +104,32 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
     const q = query.trim().toLowerCase();
     if (!q) return pending;
     return pending.filter((p) =>
-      [p.name, p.email, p.location, p.bio ?? ""].some((f) =>
-        f.toLowerCase().includes(q)
-      )
+      [p.name, p.location, p.bio ?? ""].some((f) => f.toLowerCase().includes(q))
     );
   }, [pending, query]);
 
   const toggleAll = (checked: boolean) => {
-    const next: Record<number, boolean> = {};
+    const next: Record<string, boolean> = {};
     if (checked) filtered.forEach((p) => (next[p.id] = true));
     setSelected(next);
   };
 
-  const approve = (ids: number[]) => {
+  const approve = async (ids: string[]) => {
     if (ids.length === 0) return;
+    const token = await getToken();
+    await Promise.all(ids.map((id) => approveArtistAdmin(id, token || "")));
     setPending((cur) => cur.filter((p) => !ids.includes(p.id)));
     setSelected({});
     toast.success(`${ids.length} artist${ids.length > 1 ? "s" : ""} approved`);
     onApproved?.(ids.length);
   };
 
-  const reject = (ids: number[], reason?: string) => {
+  const reject = async (ids: string[], reason?: string) => {
     if (ids.length === 0) return;
+    const token = await getToken();
+    await Promise.all(
+      ids.map((id) => rejectArtistAdmin(id, reason, token || ""))
+    );
     setPending((cur) => cur.filter((p) => !ids.includes(p.id)));
     setSelected({});
     toast.warning(
@@ -195,7 +232,9 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
               <TableRow>
                 <TableCell colSpan={5}>
                   <div className="p-10 text-center text-sm text-muted-foreground">
-                    No pending artists{query ? " for this search" : ""}.
+                    {loading
+                      ? "Loading..."
+                      : `No pending artists${query ? " for this search" : ""}.`}
                   </div>
                 </TableCell>
               </TableRow>
@@ -221,17 +260,7 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
                         <AvatarFallback>{p.name[0]}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <a
-                          href={p.profileUrl}
-                          className="font-medium hover:underline truncate block"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {p.name}
-                        </a>
-                        <p className="text-muted-foreground text-xs truncate">
-                          {p.email}
-                        </p>
+                        <p className="font-medium truncate block">{p.name}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -239,14 +268,6 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{p.location}</Badge>
-                        <a
-                          href={p.artworksUrl}
-                          className="text-xs text-primary hover:underline"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View artworks
-                        </a>
                       </div>
                       {p.bio && (
                         <p className="text-xs text-muted-foreground line-clamp-2 max-w-[52ch]">
@@ -257,7 +278,9 @@ const ArtistsApproval = ({ onApproved, onRejected }: Props) => {
                   </TableCell>
                   <TableCell>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(p.submittedAt).toLocaleString()}
+                      {p.submittedAt
+                        ? new Date(p.submittedAt).toLocaleString()
+                        : "-"}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

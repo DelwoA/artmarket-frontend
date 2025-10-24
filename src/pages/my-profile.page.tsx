@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import BasicInfo from "@/components/Profile/BasicInfo";
 import SocialLinks from "@/components/Profile/SocialLinks";
 import CompletionBanner from "@/components/Profile/CompletionBanner";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import {
   Dialog,
   DialogContent,
@@ -15,12 +15,15 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
+import { applyToBecomeArtist } from "@/lib/artists";
+import COUNTRIES from "@/lib/data/countries";
 // country select moved into BasicInfo
 
 type Role = "user" | "artist" | "admin";
 
 const MyProfilePage = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   // Role mapping from Clerk public metadata; default visitor
   const [role] = useState<Role>((user?.publicMetadata?.role as Role) || "user");
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -57,6 +60,10 @@ const MyProfilePage = () => {
       avatarUrl: user?.imageUrl,
       country: "Canada",
       city: "Vancouver",
+      website: "",
+      instagram: "",
+      facebook: "",
+      about: "",
     } as any;
   }, [role, user]);
 
@@ -112,6 +119,44 @@ const MyProfilePage = () => {
       form.facebook,
     ];
     return fields.every((v) => typeof v === "string" && v.trim().length > 0);
+  };
+
+  const submitApplication = async () => {
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      // Map UI form to backend expected fields
+      const ensureProtocol = (url: string) => {
+        const trimmed = (url || "").trim();
+        if (!trimmed) return trimmed;
+        if (/^https?:\/\//i.test(trimmed)) return trimmed;
+        return `https://${trimmed}`;
+      };
+      const countryMatch = COUNTRIES.find(
+        (c) =>
+          c.slug === String(form.country).toLowerCase() ||
+          c.name === form.country
+      );
+      const normalizedCountry = countryMatch ? countryMatch.name : form.country;
+      const payload = {
+        name: form.displayName,
+        bio: form.bio,
+        country: normalizedCountry,
+        city: form.city,
+        website: ensureProtocol(form.website),
+        instagram: ensureProtocol(form.instagram),
+        facebook: ensureProtocol(form.facebook),
+        totalLikes: 0,
+        totalViews: 0,
+      };
+      await applyToBecomeArtist(payload, token);
+      toast.success("Application submitted. Awaiting admin approval.");
+      setOpenConfirm(false);
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "Failed to submit application";
+      toast.error(msg);
+    }
   };
 
   return (
@@ -201,7 +246,7 @@ const MyProfilePage = () => {
                         <DialogClose asChild>
                           <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button>Submit</Button>
+                        <Button onClick={submitApplication}>Submit</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>

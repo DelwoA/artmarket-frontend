@@ -112,3 +112,68 @@ export const getFeaturedArtists = async () => {
     throw error;
   }
 };
+
+// Admin: list artists by status
+export const getAdminArtists = async (
+  status?: "pending" | "approved" | "rejected",
+  token?: string
+) => {
+  const url = new URL(`${BACKEND_URL}/api/artists/admin`);
+  if (status) url.searchParams.set("status", status);
+  const res = await fetch(url.toString(), {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!res.ok) throw new Error("Failed to load admin artists");
+  return res.json();
+};
+
+export const approveArtistAdmin = async (id: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/artists/admin/${id}/approve`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to approve artist");
+  return res.json();
+};
+
+export const rejectArtistAdmin = async (
+  id: string,
+  reason: string | undefined,
+  token: string
+) => {
+  const res = await fetch(`${BACKEND_URL}/api/artists/admin/${id}/reject`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Failed to reject artist");
+  return res.json();
+};
+
+// Artist application by user
+export const applyToBecomeArtist = async (payload: unknown, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/artists/apply`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let message = "Failed to apply as artist";
+    try {
+      const err = await res.json();
+      if (err && typeof err.message === "string") message = err.message;
+    } catch {
+      // ignore json parse error, fall back to default message
+    }
+    throw new Error(message);
+  }
+  return res.json();
+};

@@ -17,38 +17,30 @@ import {
 import { MenuIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { useUser } from "@clerk/clerk-react";
 
 const AdminPage = () => {
   const [active, setActive] = useState<NavKey>("overview");
-  // overview no longer uses loading state
-  const [isAdmin] = useState(true);
+  const { user, isLoaded } = useUser();
+  const isAdmin = Boolean(
+    user?.publicMetadata && (user.publicMetadata as any).role === "admin"
+  );
   const [counts, setCounts] = useState({
-    pendingArtists: 3,
-    pendingBlogs: 3,
-    bannedArtworks: 2,
-    totalArtists: 25,
-    totalArtworks: 25,
+    pendingArtists: 0,
+    pendingBlogs: 0,
+    bannedArtworks: 0,
+    totalArtists: 0,
+    totalArtworks: 0,
   });
 
   useEffect(() => {}, []);
 
   const recent = useMemo(
-    () => [
-      {
-        id: 1,
-        type: "artist" as const,
-        title: "Aisha Patel submitted profile",
-        at: "2h ago",
-      },
-      {
-        id: 2,
-        type: "blog" as const,
-        title: "New post by David Chen",
-        at: "5h ago",
-      },
-    ],
+    () => [{ id: 1, type: "artist" as const, title: "Activity", at: "" }],
     []
   );
+
+  if (!isLoaded) return null;
 
   if (!isAdmin) {
     return (
@@ -62,7 +54,7 @@ const AdminPage = () => {
             <div className="mt-4">
               <Button
                 variant="outline"
-                onClick={() => toast.info("This is a demo UI")}
+                onClick={() => toast.info("This area requires admin role")}
               >
                 Go back
               </Button>

@@ -23,6 +23,9 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { X, Share, Image } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import { getUploadSignature } from "@/lib/uploads";
+import { createBlog } from "@/lib/blogs";
 
 const IMAGE_MIME_TYPES = [
   "image/jpeg",
@@ -57,6 +60,7 @@ const CreateNewBlogPage = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const { getToken } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -102,10 +106,41 @@ const CreateNewBlogPage = () => {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const onSubmit = async (_values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      toast.success("Blog created (simulated)");
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      // Get upload signature
+      const sig = await getUploadSignature("blogs", token);
+      const formData = new FormData();
+      formData.append("file", values.image);
+      formData.append("api_key", sig.apiKey);
+      formData.append("timestamp", String(sig.timestamp));
+      formData.append("signature", sig.signature);
+      formData.append("folder", sig.folder);
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const uploadJson = await uploadRes.json();
+      const imageUrl = uploadJson.secure_url as string;
+
+      await createBlog(
+        {
+          title: values.title,
+          subtitle: values.subtitle,
+          artistName: values.artistName,
+          description: values.description,
+          featured: values.featured,
+          image: imageUrl,
+        },
+        token
+      );
+      toast.success("Blog submitted for approval");
       clearAll();
     } catch (e) {
       toast.error("Failed to create blog");

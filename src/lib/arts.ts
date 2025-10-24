@@ -149,3 +149,35 @@ export const incrementArtView = async (artId: string) => {
     throw error;
   }
 };
+
+// Admin: list and moderation
+export const getAdminArts = async (visible?: boolean, token?: string) => {
+  const url = new URL(`${BACKEND_URL}/api/arts/admin`);
+  if (typeof visible === "boolean")
+    url.searchParams.set("visible", String(visible));
+  const res = await fetch(url.toString(), {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!res.ok) throw new Error("Failed to load admin arts");
+  return res.json();
+};
+
+export const banArtAdmin = async (id: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/arts/admin/${id}/ban`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to ban art");
+  return res.json();
+};
+
+export const unbanArtAdmin = async (id: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/arts/admin/${id}/unban`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to unban art");
+  return res.json();
+};

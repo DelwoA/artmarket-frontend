@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { BLOGS, type BlogPost } from "@/lib/data/blogs";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,18 +24,19 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/clerk-react";
+import { getAdminBlogs, approveBlogAdmin, rejectBlogAdmin } from "@/lib/blogs";
 
-type PendingBlog = BlogPost & {
-  authorEmail?: string;
-  contentPreview: string;
+type PendingBlog = {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
+  publishedAt?: string;
+  excerpt?: string;
+  views?: number;
+  clerkUserId?: string;
 };
-
-const seedPending: PendingBlog[] = BLOGS.slice(0, 10).map((b, i) => ({
-  ...b,
-  authorEmail: `${b.author.toLowerCase().replace(/[^a-z]+/g, ".")}@example.com`,
-  contentPreview: b.excerpt,
-  views: b.views + i * 13,
-}));
 
 type Props = {
   onApproved?: (count: number) => void;
@@ -44,19 +44,48 @@ type Props = {
 };
 
 const BlogsApproval = ({ onApproved, onRejected }: Props) => {
+  const { getToken } = useAuth();
   const [query, setQuery] = useState("");
-  const [pending, setPending] = useState<PendingBlog[]>(seedPending);
-  const [selected, setSelected] = useState<Record<number, boolean>>({});
+  const [pending, setPending] = useState<PendingBlog[]>([]);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [rejecting, setRejecting] = useState<PendingBlog | null>(null);
   const [reason, setReason] = useState("");
   const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
   const [preview, setPreview] = useState<PendingBlog | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        const list = await getAdminBlogs("pending", token || undefined);
+        const items: PendingBlog[] = (Array.isArray(list) ? list : []).map(
+          (b: any) => ({
+            id: String(b._id),
+            title: b.title,
+            author: b.artistName,
+            coverUrl: b.image,
+            excerpt: b.subtitle,
+            publishedAt: b.createdAt,
+            views: b.views,
+          })
+        );
+        if (mounted) setPending(items);
+      } catch {
+        toast.error("Failed to load pending blogs");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [getToken]);
 
   const selectedIds = useMemo(
-    () =>
-      Object.entries(selected)
-        .filter(([, v]) => v)
-        .map(([k]) => Number(k)),
+    () => Object.keys(selected).filter((k) => selected[k]),
     [selected]
   );
 
@@ -64,27 +93,31 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
     const q = query.trim().toLowerCase();
     if (!q) return pending;
     return pending.filter((b) =>
-      [b.title, b.author, b.authorEmail ?? ""].some((f) =>
+      [b.title, b.author, b.excerpt ?? ""].some((f) =>
         f.toLowerCase().includes(q)
       )
     );
   }, [pending, query]);
 
   const toggleAll = (checked: boolean) => {
-    const next: Record<number, boolean> = {};
+    const next: Record<string, boolean> = {};
     if (checked) filtered.forEach((b) => (next[b.id] = true));
     setSelected(next);
   };
 
-  const approve = (ids: number[]) => {
+  const approve = async (ids: string[]) => {
     if (!ids.length) return;
+    const token = await getToken();
+    await Promise.all(ids.map((id) => approveBlogAdmin(id, token || "")));
     setPending((cur) => cur.filter((b) => !ids.includes(b.id)));
     setSelected({});
     toast.success(`${ids.length} blog${ids.length > 1 ? "s" : ""} approved`);
     onApproved?.(ids.length);
   };
-  const reject = (ids: number[], r?: string) => {
+  const reject = async (ids: string[], r?: string) => {
     if (!ids.length) return;
+    const token = await getToken();
+    await Promise.all(ids.map((id) => rejectBlogAdmin(id, r, token || "")));
     setPending((cur) => cur.filter((b) => !ids.includes(b.id)));
     setSelected({});
     toast.warning(
@@ -182,7 +215,9 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
               <TableRow>
                 <TableCell colSpan={6}>
                   <div className="p-10 text-center text-sm text-muted-foreground">
-                    No pending blogs{query ? " for this search" : ""}.
+                    {loading
+                      ? "Loading..."
+                      : `No pending blogs${query ? " for this search" : ""}.`}
                   </div>
                 </TableCell>
               </TableRow>
@@ -219,7 +254,7 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
                           {b.title}
                         </p>
                         <p className="text-muted-foreground text-xs line-clamp-1 max-w-[60ch]">
-                          {b.contentPreview}
+                          {b.excerpt}
                         </p>
                       </div>
                     </div>
@@ -227,17 +262,16 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm">{b.author}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {b.authorEmail}
-                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {new Date(b.publishedAt).toLocaleDateString()}
+                      {b.publishedAt
+                        ? new Date(b.publishedAt).toLocaleDateString()
+                        : "-"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{b.views.toLocaleString()}</TableCell>
+                  <TableCell>{(b.views ?? 0).toLocaleString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button
@@ -272,7 +306,9 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
             <DialogTitle>{preview?.title}</DialogTitle>
             <DialogDescription>
               by {preview?.author} ·{" "}
-              {preview && new Date(preview.publishedAt).toLocaleDateString()}
+              {preview?.publishedAt
+                ? new Date(preview.publishedAt).toLocaleDateString()
+                : "-"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
@@ -284,7 +320,7 @@ const BlogsApproval = ({ onApproved, onRejected }: Props) => {
                 className="w-full rounded object-cover"
               />
             )}
-            <p className="text-muted-foreground">{preview?.contentPreview}</p>
+            <p className="text-muted-foreground">{preview?.excerpt}</p>
           </div>
           <DialogFooter>
             <DialogClose asChild>

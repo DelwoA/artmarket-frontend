@@ -112,3 +112,45 @@ export const getFeaturedBlogs = async () => {
     throw error;
   }
 };
+
+// Admin: list blogs by status
+export const getAdminBlogs = async (
+  status?: "pending" | "approved" | "rejected",
+  token?: string
+) => {
+  const url = new URL(`${BACKEND_URL}/api/blogs/admin`);
+  if (status) url.searchParams.set("status", status);
+  const res = await fetch(url.toString(), {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!res.ok) throw new Error("Failed to load admin blogs");
+  return res.json();
+};
+
+export const approveBlogAdmin = async (id: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/blogs/admin/${id}/approve`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to approve blog");
+  return res.json();
+};
+
+export const rejectBlogAdmin = async (
+  id: string,
+  reason: string | undefined,
+  token: string
+) => {
+  const res = await fetch(`${BACKEND_URL}/api/blogs/admin/${id}/reject`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Failed to reject blog");
+  return res.json();
+};

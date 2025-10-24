@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { ARTS, type ArtItem } from "@/lib/data/arts";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,29 +37,65 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/clerk-react";
+import { getAdminArts, banArtAdmin, unbanArtAdmin } from "@/lib/arts";
 
-type ModeratedArt = ArtItem & {
-  status: "For Sale" | "Sold" | "Showcase";
-  visibility: "published" | "draft";
+type ModeratedArt = {
+  id: string;
+  title: string;
+  artistName: string;
+  imageUrl?: string;
+  likes: number;
+  views: number;
+  availability: "For Sale" | "Not for Sale" | "Sold";
   banned: boolean;
 };
-
-const seedAll: ModeratedArt[] = ARTS.map((a, i) => ({
-  ...a,
-  status: (["For Sale", "Sold", "Showcase"] as const)[i % 3],
-  visibility: i % 5 === 0 ? "draft" : "published",
-  banned: i % 7 === 0,
-}));
 
 const PAGE_SIZE = 8;
 
 const ArtworksModeration = () => {
-  const [items, setItems] = useState<ModeratedArt[]>(seedAll);
+  const { getToken } = useAuth();
+  const [items, setItems] = useState<ModeratedArt[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [banFilter, setBanFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [confirming, setConfirming] = useState<ModeratedArt | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        const list = await getAdminArts(undefined, token || undefined);
+        const mapped: ModeratedArt[] = (Array.isArray(list) ? list : []).map(
+          (a: any) => ({
+            id: String(a._id),
+            title: a.title,
+            artistName: a.artistName,
+            imageUrl:
+              Array.isArray(a.images) && a.images.length
+                ? a.images[0]
+                : undefined,
+            likes: a.likes ?? 0,
+            views: a.views ?? 0,
+            availability: a.availability,
+            banned: a.visible === false,
+          })
+        );
+        if (mounted) setItems(mapped);
+      } catch {
+        toast.error("Failed to load artworks");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [getToken]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -79,7 +114,10 @@ const ArtworksModeration = () => {
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const toggleBan = (id: number, ban: boolean) => {
+  const toggleBan = async (id: string, ban: boolean) => {
+    const token = await getToken();
+    if (ban) await banArtAdmin(id, token || "");
+    else await unbanArtAdmin(id, token || "");
     setItems((cur) =>
       cur.map((it) => (it.id === id ? { ...it, banned: ban } : it))
     );
@@ -158,7 +196,7 @@ const ArtworksModeration = () => {
               <TableRow>
                 <TableCell colSpan={7}>
                   <div className="p-10 text-center text-sm text-muted-foreground">
-                    No artworks match your filters.
+                    {loading ? "Loading..." : "No artworks match your filters."}
                   </div>
                 </TableCell>
               </TableRow>
@@ -187,7 +225,7 @@ const ArtworksModeration = () => {
                   </TableCell>
                   <TableCell>
                     <a
-                      href={it.artistUrl}
+                      href={"#"}
                       target="_blank"
                       rel="noreferrer"
                       className="hover:underline"
@@ -196,15 +234,11 @@ const ArtworksModeration = () => {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{it.status}</Badge>
+                    <Badge variant="outline">{it.availability}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        it.visibility === "published" ? "secondary" : "outline"
-                      }
-                    >
-                      {it.visibility}
+                    <Badge variant={it.banned ? "outline" : "secondary"}>
+                      {it.banned ? "banned" : "visible"}
                     </Badge>
                   </TableCell>
                   <TableCell>{it.likes.toLocaleString()}</TableCell>
