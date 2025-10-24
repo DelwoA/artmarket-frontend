@@ -30,6 +30,9 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { X, Share, Image } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import { getUploadSignature } from "@/lib/uploads";
+import { createArt } from "@/lib/arts";
 
 const IMAGE_MIME_TYPES = [
   "image/jpeg",
@@ -81,6 +84,7 @@ const CreateNewArtPage = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const { getToken } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
@@ -132,9 +136,49 @@ const CreateNewArtPage = () => {
 
   const onSubmit = async (_values: FormValues) => {
     try {
-      // Simulate async submission without backend
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      toast.success("Artwork created (simulated)");
+      const token = await getToken();
+      if (!token) {
+        toast.error("You must be signed in to create art");
+        return;
+      }
+
+      // 1) Get signed upload parameters
+      const sig = await getUploadSignature("arts", token);
+
+      // 2) Upload images directly to Cloudinary
+      const uploadOne = async (file: File): Promise<string> => {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("api_key", sig.apiKey);
+        form.append("timestamp", String(sig.timestamp));
+        form.append("signature", sig.signature);
+        form.append("folder", sig.folder);
+        const endpoint = `https://api.cloudinary.com/v1_1/${sig.cloudName}/auto/upload`;
+        const res = await fetch(endpoint, { method: "POST", body: form });
+        if (!res.ok) throw new Error("Upload failed");
+        const json = (await res.json()) as { secure_url?: string };
+        const url = json.secure_url;
+        if (!url) throw new Error("Upload failed");
+        return url;
+      };
+
+      const imageFiles = _values.images ?? [];
+      const imageUrls = await Promise.all(imageFiles.map((f) => uploadOne(f)));
+
+      // 3) Create the art in backend
+      const payload = {
+        title: _values.title,
+        artistName: _values.artistName,
+        description: _values.description,
+        category: _values.category,
+        price: Number(_values.price),
+        availability: _values.availability,
+        featured: Boolean(_values.featured),
+        images: imageUrls,
+      };
+      await createArt(payload, token);
+
+      toast.success("Artwork created");
       clearAll();
     } catch (e) {
       toast.error("Failed to create artwork");
