@@ -1,8 +1,8 @@
 import { Link } from "react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import FeaturedArtCard from "@/components/Home/FeaturedArtCard";
-import FilterPill from "@/components/Home/FilterPill";
 import { getArts } from "@/lib/arts";
+import { getHomepageConfig } from "@/lib/homepage";
 
 const FeaturedArts = () => {
   const [items, setItems] = useState<
@@ -24,10 +24,21 @@ const FeaturedArts = () => {
     (async () => {
       try {
         setLoading(true);
-        const arts = await getArts();
+        const [config, arts] = await Promise.all([
+          getHomepageConfig(),
+          getArts(),
+        ]);
         if (!isMounted) return;
-        const mapped = (Array.isArray(arts) ? arts : [])
-          .slice(0, 8)
+        const list: any[] = Array.isArray(arts) ? arts : [];
+        const byId = Object.fromEntries(
+          list.map((art: any, idx: number) => [String(art._id ?? idx), art])
+        );
+        const selectedIds = Array.isArray(config.featuredArtIds)
+          ? config.featuredArtIds
+          : [];
+        const selected = selectedIds
+          .map((id) => byId[id])
+          .filter(Boolean)
           .map((art: any, idx: number) => ({
             id: art._id ?? idx,
             title: art.title,
@@ -40,7 +51,7 @@ const FeaturedArts = () => {
                 ? art.images[0]
                 : undefined,
           }));
-        setItems(mapped);
+        setItems(selected);
         setError(null);
       } catch (e) {
         setError("Failed to load arts");
@@ -53,22 +64,6 @@ const FeaturedArts = () => {
     };
   }, []);
 
-  type SortKey = "Newest" | "Price" | "Popularity";
-  const [activeSort, setActiveSort] = useState<SortKey>("Newest");
-
-  const sorted = useMemo(() => {
-    const base = [...items];
-    switch (activeSort) {
-      case "Price":
-        return base.sort((a, b) => b.price - a.price);
-      case "Popularity":
-        return base.sort((a, b) => b.likes - a.likes || b.views - a.views);
-      case "Newest":
-      default:
-        return base.sort((a, b) => Number(b.id) - Number(a.id));
-    }
-  }, [items, activeSort]);
-
   return (
     <section className="w-full my-14 md:my-23 bg-background">
       <div className="container mx-auto px-4 md:px-8">
@@ -77,36 +72,24 @@ const FeaturedArts = () => {
             Featured Arts
           </h2>
           <Link
-            to="/art"
+            to="/arts"
             className="text-sm font-medium hover:underline hover:text-foreground"
           >
-            Browse all for-sale art →
+            Browse all art →
           </Link>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs md:text-sm">
-          <FilterPill
-            label="Newest"
-            active={activeSort === "Newest"}
-            onClick={() => setActiveSort("Newest")}
-          />
-          <FilterPill
-            label="Price"
-            active={activeSort === "Price"}
-            onClick={() => setActiveSort("Price")}
-          />
-          <FilterPill
-            label="Popularity"
-            active={activeSort === "Popularity"}
-            onClick={() => setActiveSort("Popularity")}
-          />
-        </div>
+        {null}
 
         {error ? (
           <div className="text-sm text-destructive">{error}</div>
+        ) : items.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            No featured arts yet.
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {(loading ? [] : sorted).map((item) => (
+            {(loading ? [] : items).map((item) => (
               <FeaturedArtCard key={item.id} item={item} />
             ))}
           </div>

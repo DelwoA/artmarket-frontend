@@ -14,6 +14,7 @@ import {
   type HomeConfig,
 } from "@/lib/homepage";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/clerk-react";
 
 type ArtistItem = {
   id: string;
@@ -116,15 +117,7 @@ const HomepageConfig = () => {
   const artsMap = useMemo(() => byId(arts), [arts]);
   const blogsMap = useMemo(() => byId(blogs), [blogs]);
 
-  const move = (arr: string[], id: string, dir: -1 | 1) => {
-    const idx = arr.indexOf(id);
-    const j = idx + dir;
-    if (idx < 0 || j < 0 || j >= arr.length) return arr;
-    const next = arr.slice();
-    const [sp] = next.splice(idx, 1);
-    next.splice(j, 0, sp);
-    return next;
-  };
+  // Reordering is removed per requirements
 
   const remove = (arr: string[], id: string) => arr.filter((x) => x !== id);
   const add = (arr: string[], id: string, max: number) =>
@@ -136,6 +129,8 @@ const HomepageConfig = () => {
     toast.info("Changes cleared");
   };
 
+  const { getToken } = useAuth();
+
   const onSave = async () => {
     try {
       const payload: HomeConfig = {
@@ -143,7 +138,8 @@ const HomepageConfig = () => {
         featuredArtIds: draft.featuredArtIds,
         featuredBlogIds: draft.featuredBlogIds,
       };
-      const result = await saveHomepageConfig(payload);
+      const token = await getToken();
+      const result = await saveHomepageConfig(payload, token || undefined);
       setSaved(result);
       setDraft(result);
       toast.success("Homepage saved");
@@ -180,7 +176,7 @@ const HomepageConfig = () => {
 
             <p className="text-xs text-muted-foreground">Selected</p>
             <div className="space-y-3">
-              {draft.featuredArtistIds.map((id, i) => {
+              {draft.featuredArtistIds.map((id) => {
                 const a = artistsMap[id];
                 if (!a) return null;
                 return (
@@ -196,36 +192,6 @@ const HomepageConfig = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredArtistIds: move(
-                              d.featuredArtistIds,
-                              id,
-                              -1
-                            ),
-                          }))
-                        }
-                        disabled={i === 0}
-                      >
-                        Up
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredArtistIds: move(d.featuredArtistIds, id, 1),
-                          }))
-                        }
-                        disabled={i === draft.featuredArtistIds.length - 1}
-                      >
-                        Down
-                      </Button>
                       <Button
                         size="sm"
                         variant="destructive"
@@ -302,7 +268,7 @@ const HomepageConfig = () => {
 
             <p className="text-xs text-muted-foreground">Selected</p>
             <div className="space-y-3">
-              {draft.featuredArtIds.map((id, i) => {
+              {draft.featuredArtIds.map((id) => {
                 const art = artsMap[id];
                 if (!art) return null;
                 return (
@@ -322,32 +288,6 @@ const HomepageConfig = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredArtIds: move(d.featuredArtIds, id, -1),
-                          }))
-                        }
-                        disabled={i === 0}
-                      >
-                        Up
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredArtIds: move(d.featuredArtIds, id, 1),
-                          }))
-                        }
-                        disabled={i === draft.featuredArtIds.length - 1}
-                      >
-                        Down
-                      </Button>
                       <Button
                         size="sm"
                         variant="destructive"
@@ -424,7 +364,7 @@ const HomepageConfig = () => {
 
             <p className="text-xs text-muted-foreground">Selected</p>
             <div className="space-y-3">
-              {draft.featuredBlogIds.map((id, i) => {
+              {draft.featuredBlogIds.map((id) => {
                 const b = blogsMap[id];
                 if (!b) return null;
                 return (
@@ -444,32 +384,6 @@ const HomepageConfig = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredBlogIds: move(d.featuredBlogIds, id, -1),
-                          }))
-                        }
-                        disabled={i === 0}
-                      >
-                        Up
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setDraft((d) => ({
-                            ...d,
-                            featuredBlogIds: move(d.featuredBlogIds, id, 1),
-                          }))
-                        }
-                        disabled={i === draft.featuredBlogIds.length - 1}
-                      >
-                        Down
-                      </Button>
                       <Button
                         size="sm"
                         variant="destructive"

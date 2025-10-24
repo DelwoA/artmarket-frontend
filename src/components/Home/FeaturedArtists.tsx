@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import FeaturedArtistCard, { type Artist } from "./FeaturedArtistCard";
 import { getArtists } from "@/lib/artists";
+import { getHomepageConfig } from "@/lib/homepage";
 
 const FeaturedArtists = () => {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -11,10 +12,21 @@ const FeaturedArtists = () => {
     let isMounted = true;
     (async () => {
       try {
-        const data = await getArtists();
+        const [config, data] = await Promise.all([
+          getHomepageConfig(),
+          getArtists(),
+        ]);
         if (!isMounted) return;
-        const mapped: Artist[] = (Array.isArray(data) ? data : [])
-          .slice(0, 4)
+        const list: any[] = Array.isArray(data) ? data : [];
+        const byId = Object.fromEntries(
+          list.map((a: any, idx: number) => [String(a._id ?? idx), a])
+        );
+        const selectedIds = Array.isArray(config.featuredArtistIds)
+          ? config.featuredArtistIds
+          : [];
+        const selected = selectedIds
+          .map((id) => byId[id])
+          .filter(Boolean)
           .map((a: any, idx: number) => ({
             id: a._id ?? idx,
             name: a.name,
@@ -27,7 +39,7 @@ const FeaturedArtists = () => {
             )}&background=E5E7EB&color=111827&size=64`,
             profileUrl: "#",
           }));
-        setArtists(mapped);
+        setArtists(selected);
         setError(null);
       } catch (e) {
         setError("Failed to load artists");
@@ -51,7 +63,7 @@ const FeaturedArtists = () => {
             </p>
           </div>
           <Link
-            to="/artist"
+            to="/artists"
             className="text-sm font-medium hover:underline hover:text-foreground"
           >
             View all →
@@ -60,6 +72,10 @@ const FeaturedArtists = () => {
 
         {error ? (
           <div className="text-sm text-destructive">{error}</div>
+        ) : artists.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            No featured artists yet.
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
             {artists.map((artist) => (

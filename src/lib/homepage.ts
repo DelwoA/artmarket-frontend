@@ -14,11 +14,15 @@ export const getHomepageConfig = async (): Promise<HomeConfig> => {
 };
 
 export const saveHomepageConfig = async (
-  payload: HomeConfig
+  payload: HomeConfig,
+  token?: string
 ): Promise<HomeConfig> => {
   const res = await fetch(`${BACKEND_URL}/api/homepage`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to save homepage config");

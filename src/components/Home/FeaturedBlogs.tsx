@@ -1,8 +1,8 @@
 import { Link } from "react-router";
-import { useEffect, useMemo, useState } from "react";
-import FilterPill from "@/components/Home/FilterPill";
+import { useEffect, useState } from "react";
 import BlogCard from "@/components/Blogs/BlogCard";
 import { getBlogs } from "@/lib/blogs";
+import { getHomepageConfig } from "@/lib/homepage";
 
 type BlogItem = {
   id: string | number;
@@ -23,10 +23,21 @@ const FeaturedBlogs = () => {
     (async () => {
       try {
         setLoading(true);
-        const blogs = await getBlogs();
+        const [config, blogs] = await Promise.all([
+          getHomepageConfig(),
+          getBlogs(),
+        ]);
         if (!isMounted) return;
-        const mapped: BlogItem[] = (Array.isArray(blogs) ? blogs : [])
-          .slice(0, 6)
+        const list: any[] = Array.isArray(blogs) ? blogs : [];
+        const byId = Object.fromEntries(
+          list.map((b: any, idx: number) => [String(b._id ?? idx), b])
+        );
+        const selectedIds = Array.isArray(config.featuredBlogIds)
+          ? config.featuredBlogIds
+          : [];
+        const selected: BlogItem[] = selectedIds
+          .map((id) => byId[id])
+          .filter(Boolean)
           .map((b: any, idx: number) => ({
             id: b._id ?? idx,
             title: b.title,
@@ -35,7 +46,7 @@ const FeaturedBlogs = () => {
             coverUrl: b.image,
             views: Number(b.views ?? 0),
           }));
-        setItems(mapped);
+        setItems(selected);
         setError(null);
       } catch (e) {
         setError("Failed to load blogs");
@@ -47,22 +58,6 @@ const FeaturedBlogs = () => {
       isMounted = false;
     };
   }, []);
-
-  type SortKey = "Newest" | "Popularity" | "Title";
-  const [activeSort, setActiveSort] = useState<SortKey>("Newest");
-
-  const sorted = useMemo(() => {
-    const base = [...items];
-    switch (activeSort) {
-      case "Popularity":
-        return base.sort((a, b) => b.views - a.views);
-      case "Title":
-        return base.sort((a, b) => a.title.localeCompare(b.title));
-      case "Newest":
-      default:
-        return base.sort((a, b) => Number(b.id) - Number(a.id));
-    }
-  }, [items, activeSort]);
 
   return (
     <section className="w-full my-14 md:my-23 bg-background">
@@ -79,29 +74,17 @@ const FeaturedBlogs = () => {
           </Link>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs md:text-sm">
-          <FilterPill
-            label="Newest"
-            active={activeSort === "Newest"}
-            onClick={() => setActiveSort("Newest")}
-          />
-          <FilterPill
-            label="Popularity"
-            active={activeSort === "Popularity"}
-            onClick={() => setActiveSort("Popularity")}
-          />
-          <FilterPill
-            label="Title (A–Z)"
-            active={activeSort === "Title"}
-            onClick={() => setActiveSort("Title")}
-          />
-        </div>
+        {null}
 
         {error ? (
           <div className="text-sm text-destructive">{error}</div>
+        ) : items.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            No featured blogs yet.
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(loading ? [] : sorted).map((post) => (
+            {(loading ? [] : items).map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}
           </div>

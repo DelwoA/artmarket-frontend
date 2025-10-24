@@ -24,7 +24,7 @@ const Hero = () => {
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Button asChild size="lg" className="rounded-md">
-                  <Link to="/art">Explore Art</Link>
+                  <Link to="/arts">Explore Art</Link>
                 </Button>
                 <Button
                   asChild
@@ -32,7 +32,7 @@ const Hero = () => {
                   size="lg"
                   className="rounded-md"
                 >
-                  <Link to="/artist">Meet Artists</Link>
+                  <Link to="/artists">Meet Artists</Link>
                 </Button>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
