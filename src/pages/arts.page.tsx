@@ -11,11 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CATEGORIES } from "@/lib/data/categories";
 
 const ArtsPage = () => {
   const location = useLocation();
   const [query, setQuery] = useState("");
   const [artist, setArtist] = useState("all");
+  const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<
@@ -23,6 +25,7 @@ const ArtsPage = () => {
       id: string | number;
       title: string;
       artistName: string;
+      category?: string;
       price: number;
       likes: number;
       views: number;
@@ -37,13 +40,14 @@ const ArtsPage = () => {
     (async () => {
       try {
         setLoading(true);
-        const arts = await getArts();
+        const arts = await getArts({ category });
         if (!isMounted) return;
         const mapped = (Array.isArray(arts) ? arts : []).map(
           (art: any, idx: number) => ({
             id: art._id ?? idx,
             title: art.title,
             artistName: art.artistName,
+            category: art.category,
             price: Number(art.price ?? 0),
             likes: Number(art.likes ?? 0),
             views: Number(art.views ?? 0),
@@ -64,7 +68,7 @@ const ArtsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [category]);
 
   const artists = useMemo(() => {
     const set = new Set<string>(["all"]);
@@ -79,6 +83,7 @@ const ArtsPage = () => {
           .toLowerCase()
           .includes(query.toLowerCase().trim())
       )
+      .filter((a) => (category === "all" ? true : a.category === category))
       .filter((a) => (artist === "all" ? true : a.artistName === artist));
 
     const sorted = [...base].sort((a, b) => {
@@ -97,7 +102,7 @@ const ArtsPage = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const visible = filtered.slice(startIndex, startIndex + pageSize);
 
-  useEffect(() => setPage(1), [query, artist, sort]);
+  useEffect(() => setPage(1), [query, category, artist, sort]);
 
   // Initialize artist filter from query string (?artist=Name)
   useEffect(() => {
@@ -120,7 +125,7 @@ const ArtsPage = () => {
           </p>
         </header>
 
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-center">
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-3 items-center">
           <div className="relative">
             <input
               value={query}
@@ -130,6 +135,20 @@ const ArtsPage = () => {
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
+
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Select value={artist} onValueChange={setArtist}>
             <SelectTrigger className="w-full md:w-[200px]">

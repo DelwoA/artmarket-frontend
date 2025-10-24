@@ -23,6 +23,7 @@ const ArtPage = () => {
     id: string | number;
     title: string;
     artistName: string;
+    category?: string;
     description: string;
     price: number;
     likes: number;
@@ -47,6 +48,7 @@ const ArtPage = () => {
             id: found._id,
             title: found.title,
             artistName: found.artistName,
+            category: found.category,
             description: found.description,
             price: Number(found.price ?? 0),
             likes: Number(found.likes ?? 0),
@@ -149,6 +151,11 @@ const ArtPage = () => {
                 liked={!!art.liked}
                 onToggleLike={handleToggleLike}
               />
+              {art.category ? (
+                <div className="mb-3">
+                  <Badge variant="secondary">{art.category}</Badge>
+                </div>
+              ) : null}
               {art.availability === "For Sale" ? (
                 <Button size="lg" className="mb-4">
                   Buy now •{" "}

@@ -2,9 +2,13 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Get all arts
-export const getArts = async () => {
+export const getArts = async (opts?: { category?: string }) => {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/arts`, {
+    const url = new URL(`${BACKEND_URL}/api/arts`);
+    if (opts?.category && opts.category !== "all") {
+      url.searchParams.set("category", opts.category);
+    }
+    const res = await fetch(url.toString(), {
       method: "GET",
     });
     if (!res.ok) {
