@@ -62,43 +62,81 @@ const HomepageConfig = () => {
         ]);
 
         if (!isMounted) return;
-        setArtists(
-          (Array.isArray(artistsRaw) ? artistsRaw : []).map(
-            (a: any, i: number) => ({
-              id: String(a._id ?? i),
-              name: a.name,
-              location: `${a.city}, ${a.country}`,
-              avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                a.name
-              )}&background=E5E7EB&color=111827&size=64`,
-            })
-          )
+        const mappedArtists = (Array.isArray(artistsRaw) ? artistsRaw : []).map(
+          (a: any, i: number) => ({
+            id: String(a._id ?? i),
+            name: a.name,
+            location: `${a.city}, ${a.country}`,
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              a.name
+            )}&background=E5E7EB&color=111827&size=64`,
+          })
         );
-        setArts(
-          (Array.isArray(artsRaw) ? artsRaw : []).map(
-            (art: any, i: number) => ({
-              id: String(art._id ?? i),
-              title: art.title,
-              artistName: art.artistName,
-              imageUrl:
-                Array.isArray(art.images) && art.images.length > 0
-                  ? art.images[0]
-                  : undefined,
-            })
-          )
+        const mappedArts = (Array.isArray(artsRaw) ? artsRaw : []).map(
+          (art: any, i: number) => ({
+            id: String(art._id ?? i),
+            title: art.title,
+            artistName: art.artistName,
+            imageUrl:
+              Array.isArray(art.images) && art.images.length > 0
+                ? art.images[0]
+                : undefined,
+          })
         );
-        setBlogs(
-          (Array.isArray(blogsRaw) ? blogsRaw : []).map(
-            (b: any, i: number) => ({
-              id: String(b._id ?? i),
-              title: b.title,
-              author: b.artistName,
-              coverUrl: b.image,
-            })
-          )
+        const mappedBlogs = (Array.isArray(blogsRaw) ? blogsRaw : []).map(
+          (b: any, i: number) => ({
+            id: String(b._id ?? i),
+            title: b.title,
+            author: b.artistName,
+            coverUrl: b.image,
+          })
         );
-        setSaved(config);
-        setDraft(config);
+
+        setArtists(mappedArtists);
+        setArts(mappedArts);
+        setBlogs(mappedBlogs);
+
+        const artistSet = new Set(mappedArtists.map((x) => x.id));
+        const artSet = new Set(mappedArts.map((x) => x.id));
+        const blogSet = new Set(mappedBlogs.map((x) => x.id));
+
+        const clampUnique = (
+          arr: unknown[],
+          max: number,
+          allow: Set<string>
+        ) => {
+          const seen = new Set<string>();
+          const out: string[] = [];
+          for (const raw of Array.isArray(arr) ? arr : []) {
+            const id = String(raw);
+            if (allow.has(id) && !seen.has(id)) {
+              out.push(id);
+              seen.add(id);
+              if (out.length >= max) break;
+            }
+          }
+          return out;
+        };
+
+        const cleaned: HomeConfig = {
+          featuredArtistIds: clampUnique(
+            (config?.featuredArtistIds as unknown[]) ?? [],
+            MAX.artists,
+            artistSet
+          ),
+          featuredArtIds: clampUnique(
+            (config?.featuredArtIds as unknown[]) ?? [],
+            MAX.arts,
+            artSet
+          ),
+          featuredBlogIds: clampUnique(
+            (config?.featuredBlogIds as unknown[]) ?? [],
+            MAX.blogs,
+            blogSet
+          ),
+        };
+        setSaved(cleaned);
+        setDraft(cleaned);
       } catch (e) {
         toast.error("Failed to load homepage data");
       } finally {
