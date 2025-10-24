@@ -18,10 +18,13 @@ import { MenuIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
+import { getAdminOverviewCounts } from "@/lib/admin";
 
 const AdminPage = () => {
   const [active, setActive] = useState<NavKey>("overview");
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const isAdmin = Boolean(
     user?.publicMetadata && (user.publicMetadata as any).role === "admin"
   );
@@ -33,7 +36,36 @@ const AdminPage = () => {
     totalArtworks: 0,
   });
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    let mounted = true;
+    let interval: number | undefined;
+
+    const load = async () => {
+      try {
+        const token = await getToken();
+        const data = await getAdminOverviewCounts(token || undefined);
+        if (mounted) setCounts(data);
+      } catch {
+        // silent; overview should not block rendering
+      }
+    };
+
+    // initial
+    load();
+
+    // refresh on focus
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+
+    // poll every 30s
+    interval = window.setInterval(load, 30_000);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("focus", onFocus);
+      if (interval) window.clearInterval(interval);
+    };
+  }, [getToken]);
 
   const recent = useMemo(
     () => [{ id: 1, type: "artist" as const, title: "Activity", at: "" }],
@@ -121,6 +153,7 @@ const AdminPage = () => {
                   setCounts((c) => ({
                     ...c,
                     pendingArtists: Math.max(0, c.pendingArtists - n),
+                    totalArtists: c.totalArtists + n,
                   }))
                 }
                 onRejected={(n) =>
@@ -147,7 +180,16 @@ const AdminPage = () => {
                 }
               />
             )}
-            {active === "artworks" && <ArtworksModeration />}
+            {active === "artworks" && (
+              <ArtworksModeration
+                onBanChange={(delta: number) =>
+                  setCounts((c) => ({
+                    ...c,
+                    bannedArtworks: Math.max(0, c.bannedArtworks + delta),
+                  }))
+                }
+              />
+            )}
             {active === "homepage" && <HomepageConfig />}
           </section>
         </div>

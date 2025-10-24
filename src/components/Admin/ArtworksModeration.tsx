@@ -53,7 +53,9 @@ type ModeratedArt = {
 
 const PAGE_SIZE = 8;
 
-const ArtworksModeration = () => {
+type Props = { onBanChange?: (delta: number) => void };
+
+const ArtworksModeration = ({ onBanChange }: Props) => {
   const { getToken } = useAuth();
   const [items, setItems] = useState<ModeratedArt[]>([]);
   const [query, setQuery] = useState("");
@@ -121,6 +123,7 @@ const ArtworksModeration = () => {
     setItems((cur) =>
       cur.map((it) => (it.id === id ? { ...it, banned: ban } : it))
     );
+    onBanChange?.(ban ? 1 : -1);
     toast[ban ? "warning" : "success"](
       ban ? "Artwork banned" : "Artwork unbanned"
     );

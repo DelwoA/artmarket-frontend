@@ -5,7 +5,7 @@ const ProtectedLayout = () => {
   const { isSignedIn } = useUser();
 
   if (!isSignedIn) {
-    return <Navigate to="/sign-in" />;
+    return <Navigate to="/signin" />;
   }
 
   return <Outlet />;
