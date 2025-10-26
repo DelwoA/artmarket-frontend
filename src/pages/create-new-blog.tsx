@@ -44,7 +44,6 @@ const formSchema = z.object({
     .string()
     .min(1, "Subtitle is required")
     .max(160, "Subtitle must be 160 characters or fewer"),
-  artistName: z.string().min(1, "Author name is required"),
   description: z.string().min(1, "Description is required"),
   featured: z.boolean().optional().default(false),
   image: fileSchema.refine(
@@ -66,7 +65,6 @@ const CreateNewBlogPage = () => {
     defaultValues: {
       title: "",
       subtitle: "",
-      artistName: "",
       description: "",
       featured: false,
       image: undefined as unknown as File,
@@ -132,7 +130,6 @@ const CreateNewBlogPage = () => {
         {
           title: values.title,
           subtitle: values.subtitle,
-          artistName: values.artistName,
           description: values.description,
           featured: values.featured,
           image: imageUrl,
@@ -196,21 +193,7 @@ const CreateNewBlogPage = () => {
                     )}
                   />
 
-                  <FormField
-                    name="artistName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Author</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. Elena Rodriguez"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {null}
 
                   <FormField
                     name="description"

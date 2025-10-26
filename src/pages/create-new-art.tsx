@@ -58,7 +58,6 @@ const fileSchema = z.custom<File>((v) => v instanceof File, {
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  artistName: z.string().min(1, "Artist name is required"),
   description: z.string().min(1, "Description is required"),
   category: z.enum(Categories),
   price: z.coerce.number().positive("Price must be greater than 0"),
@@ -89,7 +88,6 @@ const CreateNewArtPage = () => {
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
       title: "",
-      artistName: "",
       description: "",
       category: "Painting",
       price: 1,
@@ -167,7 +165,6 @@ const CreateNewArtPage = () => {
       // 3) Create the art in backend
       const payload = {
         title: _values.title,
-        artistName: _values.artistName,
         description: _values.description,
         category: _values.category,
         price: Number(_values.price),
@@ -218,21 +215,7 @@ const CreateNewArtPage = () => {
                     )}
                   />
 
-                  <FormField
-                    name="artistName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Artist name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. Elena Rodriguez"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {null}
 
                   <FormField
                     name="description"
