@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import BasicInfo from "@/components/Profile/BasicInfo";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
 import { applyToBecomeArtist } from "@/lib/artists";
+import { getMyProfile, updateMyProfile } from "@/lib/users";
 import COUNTRIES from "@/lib/data/countries";
 // country select moved into BasicInfo
 
@@ -68,29 +69,135 @@ const MyProfilePage = () => {
   }, [role, user]);
 
   const [form, setForm] = useState<any>(initial);
+  const [saved, setSaved] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const isArtist = role === "artist";
   const isAdmin = role === "admin";
   const isVisitor = role === "user";
 
   const artistIncomplete =
-    isArtist &&
-    (!form.about || !form.country || !form.city || !form.displayName);
+    isArtist && (!form.country || !form.city || !form.displayName);
 
-  const save = () => {
-    // minimal validation
-    if (!form.displayName) {
-      toast.error("Display name is required");
-      return;
+  const countryNameToSlug = useCallback((name?: string) => {
+    if (!name) return "";
+    const match = COUNTRIES.find((c) => c.name === name);
+    return match ? match.slug : String(name).toLowerCase();
+  }, []);
+
+  const countrySlugToName = useCallback((slugOrName?: string) => {
+    if (!slugOrName) return "";
+    const match = COUNTRIES.find(
+      (c) =>
+        c.slug === String(slugOrName).toLowerCase() || c.name === slugOrName
+    );
+    return match ? match.name : slugOrName;
+  }, []);
+
+  const ensureProtocol = useCallback((url?: string) => {
+    const trimmed = String(url || "").trim();
+    if (!trimmed) return trimmed;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }, []);
+
+  // Load saved profile and hydrate form
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!user) return;
+      setLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const profile = await getMyProfile(token);
+        if (!active) return;
+        const canonical = {
+          displayName:
+            (profile as any)?.displayName ||
+            user.fullName ||
+            user.username ||
+            "",
+          bio: (profile as any)?.bio || "",
+          country: (profile as any)?.country || "",
+          city: (profile as any)?.city || "",
+          website: (profile as any)?.website || "",
+          instagram: (profile as any)?.instagram || "",
+          facebook: (profile as any)?.facebook || "",
+          avatarUrl: (profile as any)?.avatarUrl || user.imageUrl,
+          email: user.primaryEmailAddress?.emailAddress || "",
+        };
+        setSaved(canonical);
+        setForm({
+          ...canonical,
+          // UI stores slug; backend stores country name
+          country: countryNameToSlug(canonical.country),
+        });
+      } catch {
+        // fall back to initial values if load fails
+        setSaved(null);
+        setForm(initial);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, getToken]);
+
+  const save = async () => {
+    try {
+      if (!form.displayName) {
+        toast.error("Display name is required");
+        return;
+      }
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      setSaving(true);
+      const payload = {
+        displayName: String(form.displayName || "").trim(),
+        bio: String(form.bio || "").trim(),
+        country: countrySlugToName(form.country),
+        city: String(form.city || "").trim(),
+        website: ensureProtocol(form.website),
+        instagram: ensureProtocol(form.instagram),
+        facebook: ensureProtocol(form.facebook),
+        avatarUrl: ensureProtocol(form.avatarUrl),
+      } as any;
+      const updated = await updateMyProfile(payload, token);
+      const canonical = {
+        ...updated,
+        email: user?.primaryEmailAddress?.emailAddress || "",
+        avatarUrl: updated?.avatarUrl || form.avatarUrl,
+      } as any;
+      setSaved(canonical);
+      setForm({
+        ...canonical,
+        country: countryNameToSlug(canonical.country),
+      });
+      toast.success("Profile saved");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to save profile";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
     }
-    if (isArtist && (!form.about || !form.country || !form.city)) {
-      toast.error("Please complete required artist fields");
-      return;
-    }
-    toast.success("Profile saved");
   };
 
-  const reset = () => setForm(initial);
+  const reset = () => {
+    if (saved) {
+      setForm({
+        ...saved,
+        country: countryNameToSlug(saved.country),
+      });
+    } else {
+      setForm(initial);
+    }
+  };
 
   const onAvatarFileSelected = async (file: File) => {
     try {
@@ -107,16 +214,17 @@ const MyProfilePage = () => {
     }
   };
 
-  const isProfileComplete = () => {
+  const isSavedProfileComplete = () => {
+    const src = saved || {};
     const fields = [
-      form.displayName,
-      form.email,
-      form.bio,
-      form.country,
-      form.city,
-      form.website,
-      form.instagram,
-      form.facebook,
+      (src as any).displayName,
+      user?.primaryEmailAddress?.emailAddress || "",
+      (src as any).bio,
+      (src as any).country,
+      (src as any).city,
+      (src as any).website,
+      (src as any).instagram,
+      (src as any).facebook,
     ];
     return fields.every((v) => typeof v === "string" && v.trim().length > 0);
   };
@@ -125,27 +233,15 @@ const MyProfilePage = () => {
     try {
       const token = await getToken();
       if (!token) throw new Error("No auth token");
-      // Map UI form to backend expected fields
-      const ensureProtocol = (url: string) => {
-        const trimmed = (url || "").trim();
-        if (!trimmed) return trimmed;
-        if (/^https?:\/\//i.test(trimmed)) return trimmed;
-        return `https://${trimmed}`;
-      };
-      const countryMatch = COUNTRIES.find(
-        (c) =>
-          c.slug === String(form.country).toLowerCase() ||
-          c.name === form.country
-      );
-      const normalizedCountry = countryMatch ? countryMatch.name : form.country;
+      const canonical = saved || {};
       const payload = {
-        name: form.displayName,
-        bio: form.bio,
-        country: normalizedCountry,
-        city: form.city,
-        website: ensureProtocol(form.website),
-        instagram: ensureProtocol(form.instagram),
-        facebook: ensureProtocol(form.facebook),
+        name: (canonical as any).displayName,
+        bio: (canonical as any).bio,
+        country: (canonical as any).country,
+        city: (canonical as any).city,
+        website: ensureProtocol((canonical as any).website),
+        instagram: ensureProtocol((canonical as any).instagram),
+        facebook: ensureProtocol((canonical as any).facebook),
         totalLikes: 0,
         totalViews: 0,
       };
@@ -255,7 +351,7 @@ const MyProfilePage = () => {
                   <Button
                     variant="default"
                     onClick={() => {
-                      if (isProfileComplete()) {
+                      if (isSavedProfileComplete()) {
                         setOpenConfirm(true);
                       } else {
                         setOpenIncomplete(true);
@@ -268,10 +364,16 @@ const MyProfilePage = () => {
               )}
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={reset}>
+              <Button
+                variant="outline"
+                onClick={reset}
+                disabled={loading || saving}
+              >
                 Cancel
               </Button>
-              <Button onClick={save}>Save Changes</Button>
+              <Button onClick={save} disabled={loading || saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </div>
         </div>
