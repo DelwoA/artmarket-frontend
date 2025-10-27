@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { Link } from "react-router";
 import { slugify } from "@/lib/utils";
 
@@ -10,7 +9,6 @@ type Props = {
     excerpt: string;
     author: string;
     coverUrl?: string;
-    views: number;
   };
 };
 
@@ -41,12 +39,9 @@ const BlogCard = ({ post }: Props) => {
 
         <div className="mt-3 flex items-center justify-between text-xs md:text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-muted/40" />
-            <span>{post.author}</span>
+            <span>by {post.author}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Eye className="h-4 w-4" /> {post.views}
-          </div>
+          {null}
         </div>
 
         <Button asChild variant="outline" className="mt-4 w-full">

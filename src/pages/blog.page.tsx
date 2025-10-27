@@ -21,7 +21,6 @@ const BlogPage = () => {
     artistName: string;
     description: string;
     image: string;
-    views: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +40,6 @@ const BlogPage = () => {
             artistName: found.artistName,
             description: found.description,
             image: found.image,
-            views: Number(found.views ?? 0),
           });
           setError(null);
         } else {
@@ -68,7 +66,6 @@ const BlogPage = () => {
               title={blog.title}
               subtitle={blog.subtitle}
               author={blog.artistName}
-              views={blog.views}
               dateLabel={undefined}
               authorAvatarUrl={undefined}
             />

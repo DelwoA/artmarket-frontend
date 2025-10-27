@@ -23,7 +23,6 @@ const BlogsPage = () => {
       excerpt: string;
       author: string;
       coverUrl?: string;
-      views: number;
       publishedAt?: string;
     }>
   >([]);
@@ -44,7 +43,6 @@ const BlogsPage = () => {
             excerpt: b.subtitle, // show subtitle on card per spec
             author: b.artistName,
             coverUrl: b.image,
-            views: Number(b.views ?? 0),
           })
         );
         setItems(mapped);
@@ -72,7 +70,7 @@ const BlogsPage = () => {
       .filter((b) => (author === "all" ? true : b.author === author));
     const sorted = [...base].sort((a, b) => {
       if (sort === "newest") return Number(b.id) - Number(a.id);
-      if (sort === "views-desc") return b.views - a.views;
+      if (sort === "views-desc") return 0;
       if (sort === "title-asc") return a.title.localeCompare(b.title);
       return 0;
     });
