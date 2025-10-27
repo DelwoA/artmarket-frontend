@@ -67,7 +67,6 @@ const BlogPage = () => {
               subtitle={blog.subtitle}
               author={blog.artistName}
               dateLabel={undefined}
-              authorAvatarUrl={undefined}
             />
             <CoverImage src={blog.image} alt={blog.title} />
             <BodyContent description={blog.description} />
