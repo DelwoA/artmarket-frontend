@@ -62,14 +62,6 @@ const ArtistPage = () => {
           return;
         }
         if (!isMounted) return;
-        setArtist({
-          name: a.name,
-          city: a.city,
-          country: a.country,
-          bio: a.bio,
-          totalLikes: Number(a.totalLikes ?? 0),
-          totalViews: Number(a.totalViews ?? 0),
-        });
 
         const filteredArts = (Array.isArray(arts) ? arts : [])
           .filter((art: any) => art.artistName === a.name)
@@ -89,6 +81,25 @@ const ArtistPage = () => {
               | "Sold",
           }));
         setArtworks(filteredArts);
+
+        // Compute totals from artworks to ensure legacy data is reflected accurately
+        const likesSum = filteredArts.reduce(
+          (sum, art) => sum + Number(art.likes ?? 0),
+          0
+        );
+        const viewsSum = filteredArts.reduce(
+          (sum, art) => sum + Number(art.views ?? 0),
+          0
+        );
+
+        setArtist({
+          name: a.name,
+          city: a.city,
+          country: a.country,
+          bio: a.bio,
+          totalLikes: likesSum,
+          totalViews: viewsSum,
+        });
 
         const filteredBlogs = (Array.isArray(blogs) ? blogs : [])
           .filter((b: any) => b.artistName === a.name)
