@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 
 type Props = {
@@ -25,14 +24,7 @@ function ProfileTop({ name, city, country }: Props) {
         <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4" /> {city}, {country}
         </div>
-        <div className="mt-3 flex items-center gap-2">
-          <Button size="sm" variant="default">
-            Follow
-          </Button>
-          <Button size="sm" variant="outline">
-            Contact
-          </Button>
-        </div>
+        {/* Removed Follow and Contact buttons */}
       </div>
     </div>
   );
