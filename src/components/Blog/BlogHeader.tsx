@@ -5,16 +5,9 @@ type Props = {
   subtitle?: string;
   author: string;
   dateLabel?: string;
-  authorAvatarUrl?: string;
 };
 
-const BlogHeader = ({
-  title,
-  subtitle,
-  author,
-  dateLabel,
-  authorAvatarUrl,
-}: Props) => {
+const BlogHeader = ({ title, subtitle, author, dateLabel }: Props) => {
   return (
     <header className="mb-4 md:mb-6">
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">

@@ -37,6 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { slugify } from "@/lib/utils";
 import { useAuth } from "@clerk/clerk-react";
 import { getAdminArts, banArtAdmin, unbanArtAdmin } from "@/lib/arts";
 
@@ -45,6 +46,7 @@ type ModeratedArt = {
   title: string;
   artistName: string;
   imageUrl?: string;
+  artworkUrl?: string;
   likes: number;
   views: number;
   availability: "For Sale" | "Not for Sale" | "Sold";
@@ -81,6 +83,7 @@ const ArtworksModeration = ({ onBanChange }: Props) => {
               Array.isArray(a.images) && a.images.length
                 ? a.images[0]
                 : undefined,
+            artworkUrl: `/arts/${slugify(a.title)}`,
             likes: a.likes ?? 0,
             views: a.views ?? 0,
             availability: a.availability,
@@ -105,7 +108,7 @@ const ArtworksModeration = ({ onBanChange }: Props) => {
       const matchesQ =
         !q ||
         [it.title, it.artistName].some((f) => f.toLowerCase().includes(q));
-      const matchesStatus = status === "all" || it.status === status;
+      const matchesStatus = status === "all" || it.availability === status;
       const matchesBan =
         banFilter === "all" ||
         (banFilter === "banned" ? it.banned : !it.banned);
@@ -158,7 +161,7 @@ const ArtworksModeration = ({ onBanChange }: Props) => {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="For Sale">For Sale</SelectItem>
                 <SelectItem value="Sold">Sold</SelectItem>
-                <SelectItem value="Showcase">Showcase</SelectItem>
+                <SelectItem value="Not for Sale">Not for Sale</SelectItem>
               </SelectContent>
             </Select>
             <Select
