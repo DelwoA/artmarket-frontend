@@ -11,6 +11,7 @@
       "@/*": ["./src/*"]
     },
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
 
     /* Bundler mode */
     "moduleResolution": "node",
