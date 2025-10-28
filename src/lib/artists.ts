@@ -1,5 +1,6 @@
 // Backend server URL obtained from environment variable
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { buildUrl } from "./http";
 
 // Get all artists
 export const getArtists = async () => {
@@ -118,9 +119,8 @@ export const getAdminArtists = async (
   status?: "pending" | "approved" | "rejected",
   token?: string
 ) => {
-  const url = new URL(`${BACKEND_URL}/api/artists/admin`);
-  if (status) url.searchParams.set("status", status);
-  const res = await fetch(url.toString(), {
+  const url = buildUrl("/api/artists/admin", { status });
+  const res = await fetch(url, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },

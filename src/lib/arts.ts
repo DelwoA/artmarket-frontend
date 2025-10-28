@@ -1,14 +1,15 @@
 // Backend server URL obtained from environment variable
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { buildUrl } from "./http";
 
 // Get all arts
 export const getArts = async (opts?: { category?: string }) => {
   try {
-    const url = new URL(`${BACKEND_URL}/api/arts`);
-    if (opts?.category && opts.category !== "all") {
-      url.searchParams.set("category", opts.category);
-    }
-    const res = await fetch(url.toString(), {
+    const url = buildUrl("/api/arts", {
+      category:
+        opts?.category && opts.category !== "all" ? opts.category : undefined,
+    });
+    const res = await fetch(url, {
       method: "GET",
     });
     if (!res.ok) {
@@ -156,10 +157,10 @@ export const incrementArtView = async (artId: string) => {
 
 // Admin: list and moderation
 export const getAdminArts = async (visible?: boolean, token?: string) => {
-  const url = new URL(`${BACKEND_URL}/api/arts/admin`);
-  if (typeof visible === "boolean")
-    url.searchParams.set("visible", String(visible));
-  const res = await fetch(url.toString(), {
+  const url = buildUrl("/api/arts/admin", {
+    visible: typeof visible === "boolean" ? String(visible) : undefined,
+  });
+  const res = await fetch(url, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
